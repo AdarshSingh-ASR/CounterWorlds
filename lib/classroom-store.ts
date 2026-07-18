@@ -223,7 +223,10 @@ export async function completeJob(workerToken: string, payload: { jobId: string;
   const job = await binding.prepare("SELECT session_id FROM generation_jobs WHERE id = ?").bind(payload.jobId).first<{ session_id: string }>();
   if (!job) throw new Error("Generation job not found");
   if (payload.status === "failed") {
-    await binding.prepare("UPDATE generation_jobs SET status = 'failed', stage = 'Generation failed', error = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(payload.error ?? "Unknown generation error", payload.jobId).run();
+    await binding.batch([
+      binding.prepare("UPDATE generation_jobs SET status = 'fallback', stage = 'Verified fallback published', progress = 100, world_slug = 'physics', error = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(payload.error ?? "Unknown generation error", payload.jobId),
+      binding.prepare("UPDATE sessions SET status = 'world-ready', world_slug = 'physics' WHERE id = ?").bind(job.session_id),
+    ]);
     return;
   }
   let artifactKey: string | null = null;

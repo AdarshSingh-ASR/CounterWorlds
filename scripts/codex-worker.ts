@@ -32,14 +32,14 @@ Create exactly two files in the current working directory:
 Base scientific truth only on the teacher's canonical model. Make the contrast falsifiable and visually obvious. Do not create or edit any other files. After writing both files, inspect them and fix any contract violation.`;
 }
 
-async function compile(job: Job) {
+async function compile(job: Job, signal: AbortSignal) {
   const directory = await mkdtemp(join(tmpdir(), "counterworld-"));
   try {
     const briefPath = join(directory, "brief.json");
     await writeFile(briefPath, JSON.stringify(job, null, 2), "utf8");
     const codex = new Codex();
     const thread = codex.startThread({ model: "gpt-5.6-sol", sandboxMode: "workspace-write", workingDirectory: directory, skipGitRepoCheck: true });
-    await thread.run(generationPrompt(briefPath));
+    await thread.run(generationPrompt(briefPath), { signal });
     const [manifestText, html] = await Promise.all([readFile(join(directory, "manifest.json"), "utf8"), readFile(join(directory, "world.html"), "utf8")]);
     const manifest = WorldManifestSchema.parse(JSON.parse(manifestText));
     const validation = validateWorldHtml(html);
@@ -55,14 +55,18 @@ async function tick() {
   const job = data.job as Job | null;
   if (!job) return false;
   process.stdout.write(`Compiling CounterWorld for ${job.jobId} with gpt-5.6-sol…\n`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90_000);
   try {
-    const output = await Promise.race([compile(job), new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Generation exceeded 90 seconds")), 90_000))]);
+    const output = await compile(job, controller.signal);
     await request("/api/worker", { method: "POST", body: JSON.stringify({ jobId: job.jobId, status: "ready", ...output }) });
     process.stdout.write(`Published ${output.manifest.slug}\n`);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = controller.signal.aborted ? "Generation exceeded 90 seconds" : error instanceof Error ? error.message : String(error);
     await request("/api/worker", { method: "POST", body: JSON.stringify({ jobId: job.jobId, status: "failed", error: message }) }).catch(() => undefined);
     process.stderr.write(`${message}\n`);
+  } finally {
+    clearTimeout(timeout);
   }
   return true;
 }
