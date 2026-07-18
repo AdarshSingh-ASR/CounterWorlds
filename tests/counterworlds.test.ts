@@ -1,29 +1,25 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { buildClusters, classifyResponse, GenerationRequestSchema, REFERENCE_WORLDS, WorldManifestSchema } from "../lib/counterworlds";
+import { buildClusters, GenerationRequestSchema, WorldManifestSchema } from "../lib/counterworlds";
 import { validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
 
-test("classifies common force and mass mental models", () => {
-  assert.equal(classifyResponse("The heavier cart accelerates faster because it has more mass"), "mass-amplifies");
-  assert.equal(classifyResponse("Both move together because the force is equal"), "same-acceleration");
-  assert.equal(classifyResponse("The lighter cart accelerates more because a = F / m"), "canonical");
-  assert.equal(classifyResponse("I really do not know"), "uncertain");
-});
-
-test("sorts the misconception constellation by adoption", () => {
-  const clusters = buildClusters([{ clusterKey: "canonical" }, { clusterKey: "mass-amplifies" }, { clusterKey: "mass-amplifies" }]);
-  assert.equal(clusters[0].key, "mass-amplifies");
+test("builds the constellation only from model-generated response mappings", () => {
+  const manifest = WorldManifestSchema.parse({
+    id: "world-real", slug: "world-real", title: "Live world", domain: "Physics",
+    misconceptionLaw: "A", canonicalLaw: "B",
+    controls: [{ id: "force", label: "Force", min: 1, max: 5, step: 1, unit: "N" }],
+    predictionPrompt: "Which world matches evidence?", evidenceExplanation: "Observed evidence",
+    reveal: { correctWorld: "B", explanation: "World B matches" }, reflectionPrompt: "Revise your model",
+    sourceModel: "gpt-5.6-sol",
+    misconceptionClusters: [
+      { id: "cluster-a", label: "Model A", description: "First live model", color: "violet", responseAliases: ["Quiet Quasar", "Brave Nova"] },
+      { id: "cluster-b", label: "Model B", description: "Second live model", color: "cyan", responseAliases: ["Keen Comet"] },
+    ],
+  });
+  const clusters = buildClusters(manifest);
+  assert.equal(clusters[0].key, "cluster-a");
   assert.equal(clusters[0].count, 2);
-});
-
-test("ships three complete, validated reference manifests", () => {
-  assert.deepEqual(Object.keys(REFERENCE_WORLDS).sort(), ["chemistry", "mathematics", "physics"]);
-  for (const manifest of Object.values(REFERENCE_WORLDS)) {
-    assert.doesNotThrow(() => WorldManifestSchema.parse(manifest));
-    assert.equal(manifest.sourceModel, "gpt-5.6-sol");
-    assert.ok(manifest.controls.length > 0);
-  }
 });
 
 test("rejects underspecified generation requests", () => {
@@ -47,4 +43,11 @@ test("Supabase migration creates private, RLS-protected persistence", () => {
   assert.match(sql, /storage\.buckets/);
   assert.match(sql, /'counterworlds', 'counterworlds', false/);
   assert.match(sql, /revoke all[\s\S]*from anon, authenticated/);
+});
+
+test("real-data-only migration removes the seeded classroom and fallback status", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20260718193000_real_data_only.sql", import.meta.url), "utf8");
+  assert.match(sql, /code = 'ORBIT7'/);
+  assert.match(sql, /teacher_token = 'demo-teacher-token'/);
+  assert.doesNotMatch(sql.match(/add constraint[\s\S]*$/)?.[0] ?? "", /fallback/);
 });

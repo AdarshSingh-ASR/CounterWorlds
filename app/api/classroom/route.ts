@@ -32,8 +32,8 @@ export async function POST(request: Request) {
       await submitResponse(String(body.code ?? ""), String(body.accessToken ?? ""), String(body.answer ?? ""));
       return NextResponse.json({ ok: true });
     }
-    if (["close", "queue", "launch", "reveal", "fallback", "reset"].includes(action)) {
-      await teacherAction(String(body.code ?? ""), String(body.teacherToken ?? ""), action as "close" | "queue" | "launch" | "reveal" | "fallback" | "reset");
+    if (["close", "queue", "launch", "reveal"].includes(action)) {
+      await teacherAction(String(body.code ?? ""), String(body.teacherToken ?? ""), action as "close" | "queue" | "launch" | "reveal");
       return NextResponse.json({ ok: true });
     }
     if (action === "predict") {

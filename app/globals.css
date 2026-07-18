@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-.demo-reset{border:0;background:transparent;color:#777d91;font:inherit;font-size:9px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;padding:8px}.demo-reset:hover{color:#d9dcea}.generated-world-frame{display:block;width:100%;min-height:620px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:#070810}.generated-world-lab{padding-bottom:18px}
+.generated-world-frame{display:block;width:100%;min-height:620px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:#070810}.generated-world-lab{padding-bottom:18px}.generated-prediction-box{margin-top:18px}.prediction-world-buttons{display:flex;gap:8px}.prediction-world-buttons button{border:1px solid rgba(255,255,255,.14);border-radius:7px;background:#11131d;color:#d9dcea;padding:10px 16px;cursor:pointer}.prediction-world-buttons button.selected{border-color:#8d68ff;background:rgba(125,87,255,.18);color:#fff}
 
 :root {
   --ink: #f4f5fb;

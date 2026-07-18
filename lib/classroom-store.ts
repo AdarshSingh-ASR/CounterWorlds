@@ -1,4 +1,4 @@
-import { buildClusters, classifyResponse, randomAlias, randomCode, REFERENCE_WORLDS, type ClassroomState } from "./counterworlds";
+import { buildClusters, randomAlias, randomCode, WorldManifestSchema, type ClassroomState, type WorldManifest } from "./counterworlds";
 import { getSupabaseAdmin, requireWorkerToken } from "./supabase-server";
 
 type SessionRow = {
@@ -26,45 +26,10 @@ export async function ensureSchema() {
   // Supabase schema is managed by supabase/migrations, not at request time.
 }
 
-export async function ensureDemoSession() {
-  const db = getSupabaseAdmin();
-  const existing = await db.from("sessions").select("id").eq("code", "ORBIT7").maybeSingle();
-  fail(existing.error);
-  let sessionId = existing.data?.id as string | undefined;
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    const inserted = await db.from("sessions").insert({
-      id: sessionId,
-      code: "ORBIT7",
-      teacher_token: "demo-teacher-token",
-      question: "Two carts—1 kg and 4 kg—are pushed with the same constant force. Which accelerates more, and why?",
-      learning_objective: "Use evidence to relate force, mass, and acceleration.",
-      canonical_model: "Newton's second law gives a = F/m. For the same force, the lower-mass cart accelerates more.",
-      domain: "Physics",
-      status: "collecting",
-      world_slug: null,
-    });
-    if (inserted.error?.code === "23505") {
-      const raced = await db.from("sessions").select("id").eq("code", "ORBIT7").single();
-      fail(raced.error);
-      if (!raced.data) throw new Error("Could not resolve the demo classroom");
-      sessionId = String(raced.data.id);
-    } else fail(inserted.error);
-  }
-
-  const seeds = [
-    ["Luminous Pulsar", "The heavier cart accelerates more because the same push has more mass to work with."],
-    ["Curious Photon", "The 4 kg cart should move farther. Heavier things carry more force."],
-    ["Quiet Nova", "They get the same force, so they should accelerate together."],
-    ["Brave Comet", "The light cart accelerates more because a = F divided by m."],
-    ["Keen Meteor", "More mass means more momentum, so the heavy cart gets ahead."],
-    ["Patient Nebula", "I think the smaller cart changes speed faster, but I am not sure why."],
-  ].map(([alias, answer]) => ({ id: crypto.randomUUID(), session_id: sessionId, alias, answer, cluster_key: classifyResponse(answer) }));
-  const seeded = await db.from("responses").upsert(seeds, { onConflict: "session_id,alias", ignoreDuplicates: true });
-  fail(seeded.error);
-}
-
 export async function createSession(input: { question: string; learningObjective: string; canonicalModel: string; domain?: string }) {
+  if (input.question.trim().length < 10 || input.learningObjective.trim().length < 10 || input.canonicalModel.trim().length < 10) {
+    throw new Error("Question, learning objective, and canonical model must each contain at least 10 characters");
+  }
   const db = getSupabaseAdmin();
   let code = randomCode();
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -75,20 +40,20 @@ export async function createSession(input: { question: string; learningObjective
   }
   const id = crypto.randomUUID();
   const teacherToken = crypto.randomUUID();
-  const inserted = await db.from("sessions").insert({ id, code, teacher_token: teacherToken, question: input.question, learning_objective: input.learningObjective, canonical_model: input.canonicalModel, domain: input.domain ?? "Physics" });
+  const inserted = await db.from("sessions").insert({ id, code, teacher_token: teacherToken, question: input.question.trim().slice(0, 800), learning_objective: input.learningObjective.trim().slice(0, 800), canonical_model: input.canonicalModel.trim().slice(0, 1600), domain: (input.domain ?? "Physics").trim().slice(0, 80) || "Physics" });
   fail(inserted.error);
   return { id, code, teacherToken };
 }
 
 export async function joinSession(code: string) {
-  await ensureDemoSession();
   const db = getSupabaseAdmin();
-  const sessionResult = await db.from("sessions").select("id").eq("code", code.toUpperCase()).maybeSingle();
+  const sessionResult = await db.from("sessions").select("id,status").eq("code", code.toUpperCase()).maybeSingle();
   fail(sessionResult.error);
   if (!sessionResult.data) throw new Error("No classroom found for that code");
-  const countResult = await db.from("responses").select("id", { count: "exact", head: true }).eq("session_id", sessionResult.data.id);
+  if (sessionResult.data.status !== "collecting") throw new Error("This classroom has closed its belief poll");
+  const countResult = await db.from("memberships").select("id", { count: "exact", head: true }).eq("session_id", sessionResult.data.id);
   fail(countResult.error);
-  const alias = randomAlias(Number(countResult.count ?? 0) + Math.floor(Math.random() * 8));
+  const alias = `${randomAlias(Number(countResult.count ?? 0) + Math.floor(Math.random() * 8))} ${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
   const accessToken = crypto.randomUUID();
   const inserted = await db.from("memberships").insert({ id: crypto.randomUUID(), session_id: sessionResult.data.id, alias, access_token: accessToken });
   fail(inserted.error);
@@ -110,38 +75,31 @@ async function requireTeacher(code: string, teacherToken: string) {
 }
 
 export async function submitResponse(code: string, accessToken: string, answer: string) {
+  if (answer.trim().length < 8) throw new Error("Explain your model in at least 8 characters");
   const db = getSupabaseAdmin();
   const result = await db.from("sessions").select("id,status").eq("code", code.toUpperCase()).maybeSingle();
   fail(result.error);
   if (!result.data) throw new Error("Classroom not found");
-  if (result.data.status !== "collecting" && code.toUpperCase() !== "ORBIT7") throw new Error("This classroom has closed its belief poll");
+  if (result.data.status !== "collecting") throw new Error("This classroom has closed its belief poll");
   const alias = await requireStudent(String(result.data.id), accessToken);
   const removed = await db.from("responses").delete().eq("session_id", result.data.id).eq("alias", alias);
   fail(removed.error);
-  const inserted = await db.from("responses").insert({ id: crypto.randomUUID(), session_id: result.data.id, alias: alias.slice(0, 40), answer: answer.slice(0, 1200), cluster_key: classifyResponse(answer) });
+  const inserted = await db.from("responses").insert({ id: crypto.randomUUID(), session_id: result.data.id, alias: alias.slice(0, 40), answer: answer.slice(0, 1200), cluster_key: "pending-ai-analysis" });
   fail(inserted.error);
 }
 
-export async function teacherAction(code: string, teacherToken: string, action: "close" | "queue" | "launch" | "reveal" | "fallback" | "reset") {
+export async function teacherAction(code: string, teacherToken: string, action: "close" | "queue" | "launch" | "reveal") {
   const db = getSupabaseAdmin();
   const sessionId = await requireTeacher(code, teacherToken);
-  if (action === "reset") {
-    if (code.toUpperCase() !== "ORBIT7") throw new Error("Only the demo classroom can be reset");
-    const operations = await Promise.all([
-      db.from("generation_jobs").delete().eq("session_id", sessionId),
-      db.from("predictions").delete().eq("session_id", sessionId),
-      db.from("revisions").delete().eq("session_id", sessionId),
-      db.from("sessions").update({ status: "collecting", world_slug: null }).eq("id", sessionId),
-    ]);
-    operations.forEach((result) => fail(result.error));
-    return;
-  }
   if (action === "close") {
     const result = await db.from("sessions").update({ status: "generating" }).eq("id", sessionId);
     fail(result.error); return;
   }
   if (action === "queue") {
-    const open = await db.from("generation_jobs").select("id").eq("session_id", sessionId).not("status", "in", "(failed,ready,fallback)").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    const responseCount = await db.from("responses").select("id", { count: "exact", head: true }).eq("session_id", sessionId);
+    fail(responseCount.error);
+    if (!responseCount.count) throw new Error("At least one real student explanation is required before generation");
+    const open = await db.from("generation_jobs").select("id").eq("session_id", sessionId).not("status", "in", "(failed,ready)").order("created_at", { ascending: false }).limit(1).maybeSingle();
     fail(open.error);
     if (!open.data) {
       const created = await db.from("generation_jobs").insert({ id: crypto.randomUUID(), session_id: sessionId, status: "queued", stage: "Reading class beliefs", progress: 8 });
@@ -150,17 +108,12 @@ export async function teacherAction(code: string, teacherToken: string, action: 
     const updated = await db.from("sessions").update({ status: "generating" }).eq("id", sessionId);
     fail(updated.error); return;
   }
-  if (action === "fallback") {
-    const jobs = await db.from("generation_jobs").update({ status: "fallback", stage: "Verified reference world ready", progress: 100, world_slug: "physics", updated_at: new Date().toISOString() }).eq("session_id", sessionId).not("status", "in", "(ready,fallback)");
-    fail(jobs.error);
-    const session = await db.from("sessions").update({ status: "world-ready", world_slug: "physics" }).eq("id", sessionId);
-    fail(session.error); return;
-  }
   const updated = await db.from("sessions").update({ status: action === "launch" ? "launched" : "revealed" }).eq("id", sessionId);
   fail(updated.error);
 }
 
 export async function submitPrediction(code: string, accessToken: string, selectedWorld: "A" | "B", evidence: string) {
+  if (evidence.trim().length < 5) throw new Error("Record the evidence behind your prediction");
   const db = getSupabaseAdmin();
   const session = await db.from("sessions").select("id").eq("code", code.toUpperCase()).maybeSingle();
   fail(session.error); if (!session.data) throw new Error("Classroom not found");
@@ -170,6 +123,7 @@ export async function submitPrediction(code: string, accessToken: string, select
 }
 
 export async function submitRevision(code: string, accessToken: string, beforeBelief: string, afterBelief: string) {
+  if (afterBelief.trim().length < 10) throw new Error("Explain your revised model in at least 10 characters");
   const db = getSupabaseAdmin();
   const session = await db.from("sessions").select("id").eq("code", code.toUpperCase()).maybeSingle();
   fail(session.error); if (!session.data) throw new Error("Classroom not found");
@@ -180,7 +134,6 @@ export async function submitRevision(code: string, accessToken: string, beforeBe
 }
 
 export async function getClassroom(code: string, viewer: { teacherToken?: string; studentToken?: string } = {}): Promise<ClassroomState> {
-  await ensureDemoSession();
   const db = getSupabaseAdmin();
   const sessionResult = await db.from("sessions").select("id,code,teacher_token,question,learning_objective,canonical_model,domain,status,world_slug").eq("code", code.toUpperCase()).maybeSingle();
   fail(sessionResult.error); if (!sessionResult.data) throw new Error("Classroom not found");
@@ -200,13 +153,35 @@ export async function getClassroom(code: string, viewer: { teacherToken?: string
   const allPredictions = (predictionsResult.data ?? []) as PredictionRow[];
   const allRevisions = (revisionsResult.data ?? []) as RevisionRow[];
   const job = jobResult.data as JobRow | null;
+  let manifest: WorldManifest | null = null;
+  if (session.world_slug) {
+    const worldResult = await db.from("worlds").select("manifest").eq("slug", session.world_slug).eq("validation_status", "verified").maybeSingle();
+    fail(worldResult.error);
+    const parsed = WorldManifestSchema.safeParse(worldResult.data?.manifest);
+    if (parsed.success) manifest = parsed.data;
+  }
+  const clusterByAlias = new Map<string, string>();
+  for (const cluster of manifest?.misconceptionClusters ?? []) {
+    for (const alias of cluster.responseAliases) clusterByAlias.set(alias, cluster.id);
+  }
+  const mappedResponses = allResponses.map((response) => ({ ...response, clusterKey: clusterByAlias.get(response.alias) ?? response.clusterKey }));
+  const canSeeReveal = isTeacher || session.status === "revealed";
   return {
     session: { id: session.id, code: session.code, question: session.question, learningObjective: session.learning_objective, canonicalModel: isTeacher || session.status === "revealed" ? session.canonical_model : "", domain: session.domain, status: session.status, worldSlug: session.world_slug },
-    responses: isTeacher ? allResponses : allResponses.filter((row) => row.alias === studentAlias),
+    responses: isTeacher ? mappedResponses : mappedResponses.filter((row) => row.alias === studentAlias),
     predictions: (isTeacher ? allPredictions : allPredictions.filter((row) => row.alias === studentAlias)).map((row) => ({ alias: row.alias, selectedWorld: row.selected_world, evidence: row.evidence })),
     revisions: (isTeacher ? allRevisions : allRevisions.filter((row) => row.alias === studentAlias)).map((row) => ({ alias: row.alias, beforeBelief: row.before_belief, afterBelief: row.after_belief, changed: row.changed })),
     job: job ? { id: job.id, status: job.status as NonNullable<ClassroomState["job"]>["status"], stage: job.stage, progress: job.progress, worldSlug: job.world_slug, error: job.error } : null,
-    clusters: isTeacher ? buildClusters(allResponses) : [],
+    clusters: isTeacher ? buildClusters(manifest) : [],
+    world: manifest ? {
+      slug: manifest.slug,
+      title: manifest.title,
+      predictionPrompt: manifest.predictionPrompt,
+      reflectionPrompt: manifest.reflectionPrompt,
+      sourceModel: manifest.sourceModel,
+      reveal: canSeeReveal ? manifest.reveal : null,
+      evidenceExplanation: canSeeReveal ? manifest.evidenceExplanation : "",
+    } : null,
   };
 }
 
@@ -227,6 +202,18 @@ export async function getNextJob(workerToken: string) {
   return { jobId: job.id, sessionId: job.session_id, prompt: String(session.data.question), learningObjective: String(session.data.learning_objective), canonicalModel: String(session.data.canonical_model), responses: responses.data ?? [] };
 }
 
+export async function updateJobProgress(workerToken: string, payload: { jobId: string; status: "generating" | "validating"; stage: string; progress: number }) {
+  requireWorkerToken(workerToken);
+  const progress = Math.max(23, Math.min(99, Math.round(payload.progress)));
+  const result = await getSupabaseAdmin().from("generation_jobs").update({
+    status: payload.status,
+    stage: payload.stage.slice(0, 200),
+    progress,
+    updated_at: new Date().toISOString(),
+  }).eq("id", payload.jobId).in("status", ["analyzing", "generating", "validating"]);
+  fail(result.error);
+}
+
 export async function completeJob(workerToken: string, payload: { jobId: string; worldSlug: string; manifest: unknown; html?: string; status: "ready" | "failed"; error?: string }) {
   requireWorkerToken(workerToken);
   const db = getSupabaseAdmin();
@@ -234,28 +221,28 @@ export async function completeJob(workerToken: string, payload: { jobId: string;
   fail(jobResult.error); if (!jobResult.data) throw new Error("Generation job not found");
   const sessionId = String(jobResult.data.session_id);
   if (payload.status === "failed") {
-    const results = await Promise.all([
-      db.from("generation_jobs").update({ status: "fallback", stage: "Verified fallback published", progress: 100, world_slug: "physics", error: payload.error ?? "Unknown generation error", updated_at: new Date().toISOString() }).eq("id", payload.jobId),
-      db.from("sessions").update({ status: "world-ready", world_slug: "physics" }).eq("id", sessionId),
-    ]);
-    results.forEach((result) => fail(result.error)); return;
+    const failed = await db.from("generation_jobs").update({ status: "failed", stage: "Generation failed", error: payload.error ?? "Unknown generation error", updated_at: new Date().toISOString() }).eq("id", payload.jobId);
+    fail(failed.error);
+    return;
   }
+  const parsedManifest = WorldManifestSchema.parse(payload.manifest);
+  const publishedSlug = `cw-${sessionId}-${payload.jobId}`.toLowerCase();
+  const manifest: WorldManifest = { ...parsedManifest, id: publishedSlug, slug: publishedSlug };
   let artifactKey: string | null = null;
   if (payload.html) {
-    artifactKey = `worlds/${payload.worldSlug}.html`;
+    artifactKey = `worlds/${publishedSlug}.html`;
     const uploaded = await db.storage.from("counterworlds").upload(artifactKey, payload.html, { contentType: "text/html; charset=utf-8", upsert: true });
     fail(uploaded.error);
   }
   const results = await Promise.all([
-    db.from("worlds").upsert({ id: crypto.randomUUID(), slug: payload.worldSlug, session_id: sessionId, manifest: payload.manifest, artifact_key: artifactKey, source_model: "gpt-5.6-sol", validation_status: "verified" }, { onConflict: "slug" }),
-    db.from("generation_jobs").update({ status: "ready", stage: "CounterWorld verified", progress: 100, world_slug: payload.worldSlug, updated_at: new Date().toISOString() }).eq("id", payload.jobId),
-    db.from("sessions").update({ status: "world-ready", world_slug: payload.worldSlug }).eq("id", sessionId),
+    db.from("worlds").upsert({ id: crypto.randomUUID(), slug: publishedSlug, session_id: sessionId, manifest, artifact_key: artifactKey, source_model: "gpt-5.6-sol", validation_status: "verified" }, { onConflict: "slug" }),
+    db.from("generation_jobs").update({ status: "ready", stage: "CounterWorld verified", progress: 100, world_slug: publishedSlug, updated_at: new Date().toISOString() }).eq("id", payload.jobId),
+    db.from("sessions").update({ status: "world-ready", world_slug: publishedSlug }).eq("id", sessionId),
   ]);
   results.forEach((result) => fail(result.error));
 }
 
 export async function getWorldArtifact(slug: string) {
-  if (REFERENCE_WORLDS[slug]) return null;
   const db = getSupabaseAdmin();
   const row = await db.from("worlds").select("artifact_key").eq("slug", slug).eq("validation_status", "verified").maybeSingle();
   fail(row.error); if (!row.data?.artifact_key) return null;

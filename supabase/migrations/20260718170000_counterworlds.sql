@@ -55,7 +55,7 @@ create table if not exists public.revisions (
 create table if not exists public.generation_jobs (
   id uuid primary key default gen_random_uuid(),
   session_id uuid not null references public.sessions(id) on delete cascade,
-  status text not null default 'queued' check (status in ('queued','analyzing','generating','validating','ready','failed','fallback')),
+  status text not null default 'queued' check (status in ('queued','analyzing','generating','validating','ready','failed')),
   stage text not null default 'queued',
   progress integer not null default 0 check (progress between 0 and 100),
   world_slug text,

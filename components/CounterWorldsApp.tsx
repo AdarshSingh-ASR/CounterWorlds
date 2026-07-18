@@ -4,21 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowRight, BarChart3, BookOpen, BrainCircuit, Check, ChevronRight, CircleDot,
+  ArrowRight, BarChart3, BrainCircuit, Check, ChevronRight, CircleDot,
   Clipboard, FlaskConical, Gauge, GraduationCap, Layers3, LoaderCircle, LockKeyhole,
   Menu, Orbit, Play, Plus, Radio, Send, Sparkles, Telescope, Users, WandSparkles, X,
 } from "lucide-react";
 import { Brand } from "./Brand";
 import { WorldLab } from "./WorldLab";
-import { REFERENCE_WORLDS, type ClassroomState } from "../lib/counterworlds";
+import type { ClassroomState } from "../lib/counterworlds";
 
-type Mode = "landing" | "teacher" | "student" | "showcase";
-type Props = { mode: Mode; initialCode?: string; showcaseSlug?: string };
+type Mode = "landing" | "teacher" | "student";
+type Props = { mode: Mode; initialCode?: string };
 
 const defaultLesson = {
-  question: "Two carts—1 kg and 4 kg—are pushed with the same constant force. Which accelerates more, and why?",
-  learningObjective: "Use evidence to relate force, mass, and acceleration.",
-  canonicalModel: "Newton's second law gives a = F/m. For the same force, the lower-mass cart accelerates more.",
+  question: "",
+  learningObjective: "",
+  canonicalModel: "",
   domain: "Physics",
 };
 
@@ -35,9 +35,9 @@ function Shell({ children, minimal = false }: { children: React.ReactNode; minim
       <div className="star-field" aria-hidden="true"><span /><span /><span /><span /><span /><span /><span /><span /></div>
       {!minimal && <header className="topbar">
         <Brand />
-        <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#worlds">World library</a><Link href="/teacher/ORBIT7">Teacher demo</Link></nav>
+        <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#integrity">Real-data promise</a></nav>
         <div className="top-actions">
-          <Link className="text-button" href="/join/ORBIT7"><Radio size={14} /> Join ORBIT7</Link>
+          <button className="text-button" onClick={() => document.querySelector<HTMLInputElement>('.join-inline input')?.focus()}><Radio size={14} /> Join a live class</button>
           <span className="status-pill"><span /> SYSTEM ONLINE</span>
           <button className="mobile-menu" aria-label="Open navigation"><Menu /></button>
         </div>
@@ -49,7 +49,7 @@ function Shell({ children, minimal = false }: { children: React.ReactNode; minim
 
 function Landing() {
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState("ORBIT7");
+  const [joinCode, setJoinCode] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [lesson, setLesson] = useState(defaultLesson);
   const [creating, setCreating] = useState(false);
@@ -73,24 +73,24 @@ function Landing() {
           <p>CounterWorlds turns a class&apos;s misconceptions into playable experiments—so students discover which laws survive contact with evidence.</p>
           <div className="hero-actions">
             <button className="primary-button" onClick={() => setShowCreate(true)}><Plus size={17} /> Launch a classroom <ArrowRight size={17} /></button>
-            <Link className="secondary-button" href="/teacher/ORBIT7"><Play size={16} /> Watch the 90-sec demo</Link>
+            <a className="secondary-button" href="#how"><Play size={16} /> See the live workflow</a>
           </div>
           <div className="join-inline">
-            <span>STUDENT?</span><input aria-label="Classroom code" value={joinCode} maxLength={6} onChange={(event) => setJoinCode(event.target.value.toUpperCase())} /><button onClick={() => router.push(`/join/${joinCode || "ORBIT7"}`)}>Enter portal <ChevronRight size={15} /></button>
+            <span>STUDENT?</span><input aria-label="Classroom code" placeholder="6-digit code" value={joinCode} maxLength={6} onChange={(event) => setJoinCode(event.target.value.toUpperCase())} /><button disabled={joinCode.length !== 6} onClick={() => router.push(`/join/${joinCode}`)}>Enter portal <ChevronRight size={15} /></button>
           </div>
           <div className="trust-row"><span><LockKeyhole size={14} /> Anonymous by design</span><span><BrainCircuit size={14} /> Productive struggle</span><span><Sparkles size={14} /> GPT-5.6 Sol</span></div>
         </div>
         <div className="hero-visual" aria-label="Preview of a CounterWorld experiment">
           <div className="hero-orbit hero-orbit-one" /><div className="hero-orbit hero-orbit-two" />
-          <div className="visual-topline"><span><Radio size={13} /> LIVE CLASS · 24 BELIEFS</span><b>GENERATING CONTRAST</b></div>
-          <div className="visual-question">Same force. Different mass.<br /><b>What happens next?</b></div>
+          <div className="visual-topline"><span><Radio size={13} /> LIVE INPUTS ONLY</span><b>NO SEEDED RESPONSES</b></div>
+          <div className="visual-question">Your question. Your students.<br /><b>A newly generated universe.</b></div>
           <div className="mini-worlds">
-            <div className="mini-world mini-world-a"><span>WORLD A</span><div className="mini-track"><i /><i className="heavy" /></div><small>Mass amplifies force</small></div>
+            <div className="mini-world mini-world-a"><span>WORLD A</span><div className="mini-track"><i /><i className="heavy" /></div><small>Class model · generated live</small></div>
             <div className="world-divider"><span>VS</span></div>
-            <div className="mini-world mini-world-b"><span>WORLD B</span><div className="mini-track"><i /><i className="heavy" /></div><small>Mass resists acceleration</small></div>
+            <div className="mini-world mini-world-b"><span>WORLD B</span><div className="mini-track"><i /><i className="heavy" /></div><small>Canonical model · generated live</small></div>
           </div>
-          <div className="belief-signal"><span className="signal-orb"><Orbit /></span><div><b>Dominant class belief detected</b><p>“Heavier objects accelerate faster.”</p></div><strong>62%</strong></div>
-          <div className="compile-strip"><span><LoaderCircle /> Compiling a falsifiable world…</span><div><i /><i /><i /><i /></div></div>
+          <div className="belief-signal"><span className="signal-orb"><Orbit /></span><div><b>Every constellation begins empty</b><p>Only real participant explanations appear.</p></div></div>
+          <div className="compile-strip"><span><LoaderCircle /> Codex compiles after submissions close</span><div><i /><i /><i /><i /></div></div>
         </div>
       </section>
 
@@ -110,21 +110,19 @@ function Landing() {
         </div>
       </section>
 
-      <section className="world-library" id="worlds">
-        <div className="library-heading"><div><span className="eyebrow"><Layers3 size={13} /> VERIFIED WORLD LIBRARY</span><h2>Three disciplines.<br />One revolutionary mechanic.</h2></div><p>Every world starts with a tempting wrong law, then gives students the controls to break it.</p></div>
+      <section className="world-library" id="integrity">
+        <div className="library-heading"><div><span className="eyebrow"><Layers3 size={13} /> REAL-DATA PROMISE</span><h2>Nothing appears<br />until your class creates it.</h2></div><p>CounterWorlds does not seed students, answers, clusters, predictions, or generated experiments.</p></div>
         <div className="library-grid">
-          {Object.values(REFERENCE_WORLDS).map((world, index) => (
-            <Link href={`/showcase/${world.slug}`} className={`library-card library-${index + 1}`} key={world.slug}>
-              <span className="library-index">0{index + 1}</span><span className="domain-chip">{world.domain}</span><h3>{world.title}</h3><p>{world.misconceptionLaw}</p><div className="law-comparison"><span>STUDENT LAW</span><i /><span>REAL LAW</span></div><b>Enter this CounterWorld <ArrowRight size={16} /></b>
-            </Link>
-          ))}
+          <article className="library-card library-1"><span className="library-index">01</span><span className="domain-chip">CLASSROOM</span><h3>Real explanations</h3><p>The belief map starts empty and is populated only by anonymous students who join your live code.</p><b>Supabase persisted</b></article>
+          <article className="library-card library-2"><span className="library-index">02</span><span className="domain-chip">ANALYSIS</span><h3>Real model clusters</h3><p>GPT-5.6 Sol maps every submitted alias into one generated mental-model cluster exactly once.</p><b>Codex generated</b></article>
+          <article className="library-card library-3"><span className="library-index">03</span><span className="domain-chip">EXPERIMENT</span><h3>Real CounterWorlds</h3><p>The interactive world is generated and safety-validated for this specific class before publication.</p><b>No cached substitute</b></article>
         </div>
       </section>
 
       <section className="closing-section"><div className="closing-orb"><Orbit /></div><span className="eyebrow"><GraduationCap size={13} /> BUILT FOR THE MOMENT OF DOUBT</span><h2>A wrong answer is not a failure.<br /><em>It&apos;s a world waiting to be tested.</em></h2><button className="primary-button" onClick={() => setShowCreate(true)}>Open your first portal <ArrowRight size={17} /></button></section>
       <footer><Brand compact /><p>Where misconceptions become experiments.</p><span>Built with Codex + GPT-5.6 Sol</span></footer>
 
-      {showCreate && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="create-title"><div className="create-modal"><button className="modal-close" onClick={() => setShowCreate(false)} aria-label="Close"><X /></button><span className="eyebrow"><Telescope size={13} /> NEW OBSERVATORY SESSION</span><h2 id="create-title">What belief will your class test?</h2><label>Question<textarea rows={3} value={lesson.question} onChange={(event) => setLesson({ ...lesson, question: event.target.value })} /></label><label>Learning objective<input value={lesson.learningObjective} onChange={(event) => setLesson({ ...lesson, learningObjective: event.target.value })} /></label><label>Canonical model<textarea rows={3} value={lesson.canonicalModel} onChange={(event) => setLesson({ ...lesson, canonicalModel: event.target.value })} /></label>{error && <p className="form-error">{error}</p>}<button className="primary-button full-button" onClick={createClass} disabled={creating}>{creating ? <><LoaderCircle className="spin" /> Opening portal…</> : <>Create classroom <ArrowRight size={17} /></>}</button><small>Students join anonymously. You stay in control of every reveal.</small></div></div>}
+      {showCreate && <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="create-title"><div className="create-modal"><button className="modal-close" onClick={() => setShowCreate(false)} aria-label="Close"><X /></button><span className="eyebrow"><Telescope size={13} /> NEW OBSERVATORY SESSION</span><h2 id="create-title">What belief will your class test?</h2><label>Question<textarea rows={3} placeholder="Enter the question your class will answer" value={lesson.question} onChange={(event) => setLesson({ ...lesson, question: event.target.value })} /></label><label>Learning objective<input placeholder="Describe what students should discover" value={lesson.learningObjective} onChange={(event) => setLesson({ ...lesson, learningObjective: event.target.value })} /></label><label>Canonical model<textarea rows={3} placeholder="Enter the accepted scientific or mathematical model" value={lesson.canonicalModel} onChange={(event) => setLesson({ ...lesson, canonicalModel: event.target.value })} /></label>{error && <p className="form-error">{error}</p>}<button className="primary-button full-button" onClick={createClass} disabled={creating || lesson.question.trim().length < 10 || lesson.learningObjective.trim().length < 10 || lesson.canonicalModel.trim().length < 10}>{creating ? <><LoaderCircle className="spin" /> Opening portal…</> : <>Create classroom <ArrowRight size={17} /></>}</button><small>Students join anonymously. You stay in control of every reveal.</small></div></div>}
     </Shell>
   );
 }
@@ -142,8 +140,7 @@ function TeacherConsole({ code }: { code: string }) {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"beliefs" | "world" | "evidence">("beliefs");
   const [copied, setCopied] = useState(false);
-  const [localProgress, setLocalProgress] = useState(0);
-  const token = typeof window !== "undefined" ? (sessionStorage.getItem(`cw-teacher-${code}`) ?? (code === "ORBIT7" ? "demo-teacher-token" : "")) : "";
+  const token = typeof window !== "undefined" ? (sessionStorage.getItem(`cw-teacher-${code}`) ?? "") : "";
 
   const refresh = useCallback(async () => {
     try { setState(await api<ClassroomState>(`/api/classroom?code=${encodeURIComponent(code)}`, { headers: { "x-counterworlds-teacher-token": token } })); setError(""); }
@@ -151,23 +148,8 @@ function TeacherConsole({ code }: { code: string }) {
   }, [code, token]);
   useEffect(() => { const start = window.setTimeout(refresh, 0); const id = window.setInterval(refresh, 1800); return () => { clearTimeout(start); clearInterval(id); }; }, [refresh]);
 
-  useEffect(() => {
-    if (state?.session.status !== "generating") return;
-    const started = Date.now();
-    const interval = window.setInterval(() => {
-      const elapsed = Date.now() - started;
-      setLocalProgress(Math.min(92, 12 + elapsed / 95));
-      if (elapsed > 7200 && state.job?.status !== "ready" && state.job?.status !== "fallback") {
-        api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "fallback", code, teacherToken: token }) }).then(refresh).catch(() => undefined);
-        window.clearInterval(interval);
-      }
-    }, 180);
-    return () => window.clearInterval(interval);
-  }, [state?.session.status, state?.job?.status, code, token, refresh]);
-
   async function teacherAction(action: string) {
     try {
-      if (action === "queue" || action === "reset") setLocalProgress(0);
       if (action === "queue") await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "close", code, teacherToken: token }) });
       await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, code, teacherToken: token }) });
       if (action === "queue") setActiveTab("world");
@@ -178,7 +160,7 @@ function TeacherConsole({ code }: { code: string }) {
   if (!state && !error) return <Shell minimal><AppHeader code={code} role="Teacher" /><LoadingState /></Shell>;
   if (!state) return <Shell minimal><AppHeader code={code} role="Teacher" /><div className="error-state"><Telescope /><h1>Observatory unavailable</h1><p>{error}</p><Link href="/">Return home</Link></div></Shell>;
   const total = Math.max(1, state.responses.length);
-  const progress = Math.max(state.job?.progress ?? 0, localProgress);
+  const progress = state.job?.progress ?? 0;
   const changed = state.revisions.filter((revision) => revision.changed).length;
 
   return (
@@ -195,7 +177,7 @@ function TeacherConsole({ code }: { code: string }) {
           <div className="privacy-note"><LockKeyhole /><p><b>No student accounts.</b><br />Aliases disappear with the session.</p></div>
         </aside>
         <section className="teacher-main">
-          <div className="teacher-titlebar"><div><span className="eyebrow"><Radio size={13} /> LIVE · {state.session.domain.toUpperCase()}</span><h1>{state.session.question}</h1><p>{state.session.learningObjective}</p></div><div className="session-actions"><span className={`session-status status-${state.session.status}`}><i />{state.session.status.replace("-", " ")}</span>{code === "ORBIT7" && state.session.status !== "collecting" && <button className="demo-reset" onClick={() => teacherAction("reset")}>Reset demo</button>}{state.session.status === "collecting" && <button className="primary-button" onClick={() => teacherAction("queue")}><WandSparkles size={16} /> Compile CounterWorld</button>}{state.session.status === "world-ready" && <button className="primary-button" onClick={() => teacherAction("launch")}><Play size={16} /> Launch to class</button>}{state.session.status === "launched" && <button className="primary-button" onClick={() => teacherAction("reveal")}><Sparkles size={16} /> Reveal evidence</button>}</div></div>
+          <div className="teacher-titlebar"><div><span className="eyebrow"><Radio size={13} /> LIVE · {state.session.domain.toUpperCase()}</span><h1>{state.session.question}</h1><p>{state.session.learningObjective}</p></div><div className="session-actions"><span className={`session-status status-${state.session.status}`}><i />{state.session.status.replace("-", " ")}</span>{state.session.status === "collecting" && <button className="primary-button" disabled={state.responses.length === 0} onClick={() => teacherAction("queue")}><WandSparkles size={16} /> Compile CounterWorld</button>}{state.session.status === "world-ready" && <button className="primary-button" onClick={() => teacherAction("launch")}><Play size={16} /> Launch to class</button>}{state.session.status === "launched" && <button className="primary-button" onClick={() => teacherAction("reveal")}><Sparkles size={16} /> Reveal evidence</button>}</div></div>
           {error && <div className="inline-error">{error}</div>}
 
           {activeTab === "beliefs" && <div className="belief-view">
@@ -206,18 +188,20 @@ function TeacherConsole({ code }: { code: string }) {
                 const size = 126 + (cluster.count / total) * 130;
                 return <div key={cluster.key} className={`belief-orb belief-${cluster.color} belief-position-${index}`} style={{ width: size, height: size }}><span className="orb-rings" /><strong>{Math.round(cluster.count / total * 100)}%</strong><b>{cluster.label}</b><small>{cluster.count} students</small></div>;
               })}
+              {state.responses.length === 0 && <div className="no-evidence"><Orbit /><p>The constellation is empty. Share the join code to collect real explanations.</p></div>}
+              {state.responses.length > 0 && state.clusters.length === 0 && <div className="no-evidence"><BrainCircuit /><p>Explanations received. GPT-5.6 will create the real mental-model clusters during compilation.</p></div>}
               <div className="map-legend"><span><i className="legend-violet" /> Dominant misconception</span><span><i className="legend-cyan" /> Canonical model</span><span><i className="legend-amber" /> Unresolved</span></div>
             </div>
-            <div className="response-stream"><div className="response-heading"><h3>Belief signals</h3><span>ANONYMIZED · LIVE</span></div>{state.responses.slice(-6).map((response) => <article key={response.id}><span className={`avatar avatar-${response.clusterKey}`}>{response.alias.split(" ").map((word) => word[0]).join("")}</span><div><b>{response.alias}</b><p>“{response.answer}”</p></div><span className="response-cluster">{state.clusters.find((cluster) => cluster.key === response.clusterKey)?.label ?? "Unresolved"}</span></article>)}</div>
+            <div className="response-stream"><div className="response-heading"><h3>Belief signals</h3><span>ANONYMIZED · LIVE</span></div>{state.responses.slice(-6).map((response) => <article key={response.id}><span className={`avatar avatar-${response.clusterKey}`}>{response.alias.split(" ").map((word) => word[0]).join("")}</span><div><b>{response.alias}</b><p>“{response.answer}”</p></div><span className="response-cluster">{state.clusters.find((cluster) => cluster.key === response.clusterKey)?.label ?? "Pending GPT analysis"}</span></article>)}</div>
           </div>}
 
           {activeTab === "world" && <div className="world-view">
-            {state.session.status === "generating" ? <div className="generation-stage"><span className="generation-core"><BrainCircuit /></span><span className="eyebrow"><Sparkles size={13} /> GPT-5.6 SOL · CODEX WORKER</span><h2>Compiling the class&apos;s<br />counterfactual universe</h2><p>{state.job?.stage ?? (progress < 35 ? "Mapping competing mental models" : progress < 65 ? "Writing universe laws" : "Validating the evidence loop")}</p><div className="generation-progress"><span style={{ width: `${progress}%` }} /></div><div className="generation-steps"><span className="done"><Check /> Analyze</span><i /><span className={progress > 38 ? "done" : "active"}>{progress > 38 ? <Check /> : <LoaderCircle className="spin" />} Generate</span><i /><span className={progress > 72 ? "active" : ""}><CircleDot /> Validate</span><i /><span><Sparkles /> Publish</span></div><small>A verified reference world automatically takes over if live generation exceeds 90 seconds.</small></div> : state.session.worldSlug ? <><div className="world-source-banner"><span><Check /> WORLD VERIFIED</span><p>The mistaken and canonical laws respond to identical controls. Labels stay hidden until the class commits.</p><b>{state.job?.status === "fallback" || !state.job ? "CACHED FALLBACK" : "LIVE GENERATED"}</b></div><WorldLab slug={state.session.worldSlug} revealed={state.session.status === "revealed"} /></> : <div className="empty-world"><WandSparkles /><h2>Ready to compile a misconception</h2><p>Close the belief poll when the class has committed to its reasoning.</p><button className="primary-button" onClick={() => teacherAction("queue")}><WandSparkles /> Compile CounterWorld</button></div>}
+            {state.session.status === "generating" ? state.job?.status === "failed" ? <div className="generation-stage"><span className="generation-core"><X /></span><span className="eyebrow">REAL GENERATION STOPPED</span><h2>Codex did not publish<br />an unverified world.</h2><p>{state.job.error ?? "The generation worker reported an error."}</p><button className="primary-button" onClick={() => teacherAction("queue")}><WandSparkles /> Retry real generation</button><small>No cached or synthetic replacement was used.</small></div> : <div className="generation-stage"><span className="generation-core"><BrainCircuit /></span><span className="eyebrow"><Sparkles size={13} /> GPT-5.6 SOL · CODEX WORKER</span><h2>Compiling the class&apos;s<br />counterfactual universe</h2><p>{state.job?.stage ?? "Waiting for the authenticated Codex worker"}</p><div className="generation-progress"><span style={{ width: `${progress}%` }} /></div><div className="generation-steps"><span className={progress >= 22 ? "done" : "active"}>{progress >= 22 ? <Check /> : <LoaderCircle className="spin" />} Analyze</span><i /><span className={progress >= 48 ? "done" : progress >= 22 ? "active" : ""}>{progress >= 48 ? <Check /> : <CircleDot />} Generate</span><i /><span className={progress >= 78 ? "done" : progress >= 48 ? "active" : ""}><CircleDot /> Validate</span><i /><span className={progress === 100 ? "done" : ""}><Sparkles /> Publish</span></div><small>This screen reports persisted worker state only. It never simulates progress or substitutes a cached world.</small></div> : state.world ? <><div className="world-source-banner"><span><Check /> WORLD VERIFIED</span><p>The mistaken and canonical laws respond to identical controls. Labels stay hidden until the class commits.</p><b>LIVE GENERATED</b></div><WorldLab world={state.world} revealed={state.session.status === "revealed"} /></> : <div className="empty-world"><WandSparkles /><h2>Ready to compile a misconception</h2><p>{state.responses.length ? "Close the belief poll when the class has committed to its reasoning." : "At least one real student explanation is required before generation."}</p><button className="primary-button" disabled={state.responses.length === 0} onClick={() => teacherAction("queue")}><WandSparkles /> Compile CounterWorld</button></div>}
           </div>}
 
           {activeTab === "evidence" && <div className="evidence-view">
             <div className="evidence-hero"><span className="eyebrow"><BarChart3 size={13} /> CONCEPTUAL CHANGE</span><h2>Did the evidence move the model?</h2><p>CounterWorlds measures revision, not compliance.</p></div>
-            <div className="evidence-stats"><article><span>Predictions locked</span><strong>{state.predictions.length}</strong><small>before the reveal</small></article><article><span>Matched World B</span><strong>{state.predictions.length ? Math.round(state.predictions.filter((p) => p.selectedWorld === "B").length / state.predictions.length * 100) : 0}%</strong><small>from observed evidence</small></article><article><span>Beliefs revised</span><strong>{state.revisions.length ? Math.round(changed / state.revisions.length * 100) : 0}%</strong><small>{changed} of {state.revisions.length} reflections</small></article></div>
+            <div className="evidence-stats"><article><span>Predictions locked</span><strong>{state.predictions.length}</strong><small>before the reveal</small></article><article><span>Matched evidence</span><strong>{state.predictions.length && state.world?.reveal ? Math.round(state.predictions.filter((p) => p.selectedWorld === state.world?.reveal?.correctWorld).length / state.predictions.length * 100) : 0}%</strong><small>from observed evidence</small></article><article><span>Beliefs revised</span><strong>{state.revisions.length ? Math.round(changed / state.revisions.length * 100) : 0}%</strong><small>{changed} of {state.revisions.length} reflections</small></article></div>
             <div className="revision-table"><div className="response-heading"><h3>Revision trail</h3><span>BEFORE → AFTER</span></div>{state.revisions.length === 0 ? <div className="no-evidence"><Gauge /><p>Revision evidence appears after the reveal.</p></div> : state.revisions.map((revision) => <article key={revision.alias}><span className="avatar">{revision.alias.split(" ").map((w) => w[0]).join("")}</span><div><b>{revision.alias}</b><p><del>{revision.beforeBelief}</del><ArrowRight /><span>{revision.afterBelief}</span></p></div><span className={revision.changed ? "changed-chip" : "held-chip"}>{revision.changed ? "MODEL SHIFT" : "HELD"}</span></article>)}</div>
           </div>}
         </section>
@@ -271,20 +255,13 @@ function StudentExperience({ code }: { code: string }) {
     {error && <div className="inline-error">{error}</div>}
     {!submitted && status === "collecting" ? <section className="belief-entry"><span className="eyebrow"><BrainCircuit size={13} /> FIRST, MAKE YOUR MODEL VISIBLE</span><span className="question-number">QUESTION 01</span><h1>{state.session.question}</h1><p>There is no grade here. Explain the law you think the universe follows.</p><textarea autoFocus rows={6} value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="I think… because…" maxLength={1200} /><div className="entry-footer"><span>{answer.length} / 1200</span><button className="primary-button" onClick={submitBelief} disabled={answer.trim().length < 8}>Commit my belief <Send size={16} /></button></div><small><LockKeyhole /> Your classmates cannot see this answer until everyone has committed.</small></section> : null}
     {submitted && (status === "collecting" || status === "generating" || status === "world-ready") ? <section className="student-wait"><span className="waiting-orbit"><Orbit /></span><span className="eyebrow"><Radio size={13} /> BELIEF COMMITTED</span><h1>Your model is now part<br />of the class constellation.</h1><p>{status === "generating" ? "GPT-5.6 is compiling a world from your class's competing laws." : status === "world-ready" ? "The CounterWorld is ready. Your teacher will open the portal." : "Waiting for the rest of the class to make their reasoning visible."}</p><div className="your-belief"><span>YOUR BELIEF</span><blockquote>“{answer}”</blockquote></div><div className="waiting-dots"><i /><i /><i /></div></section> : null}
-    {(status === "launched" || status === "revealed") && !alreadyRevised ? <section className="student-lab"><div className="student-lab-intro"><span className="eyebrow"><FlaskConical size={13} /> STEP 2 · TEST THE UNIVERSES</span><h1>Both worlds are internally consistent.<br /><em>Only one matches our universe.</em></h1><p>Change one variable at a time. Predict before the reveal.</p></div><WorldLab slug={state.session.worldSlug ?? "physics"} revealed={status === "revealed"} submittedPrediction={predicted} onPrediction={status === "launched" && !predicted ? submitPrediction : undefined} />{status === "launched" && predicted && <div className="prediction-locked"><Check /> Prediction locked. Keep experimenting while the class gathers evidence.</div>}{status === "revealed" && <div className="revision-entry"><span className="eyebrow"><Sparkles size={13} /> FINAL STEP · REBUILD THE MODEL</span><h2>{REFERENCE_WORLDS[state.session.worldSlug ?? "physics"]?.reflectionPrompt ?? "Rewrite your original law using the evidence you observed."}</h2><div className="belief-before"><span>BEFORE</span><p>{answer}</p></div><textarea rows={4} value={revision} onChange={(event) => setRevision(event.target.value)} placeholder="Now I think… because the experiment showed…" /><button className="primary-button" disabled={revision.trim().length < 10} onClick={submitRevision}>Submit my revised law <ArrowRight size={16} /></button></div>}</section> : null}
+    {(status === "launched" || status === "revealed") && state.world && !alreadyRevised ? <section className="student-lab"><div className="student-lab-intro"><span className="eyebrow"><FlaskConical size={13} /> STEP 2 · TEST THE UNIVERSES</span><h1>Both worlds are internally consistent.<br /><em>Only one matches our universe.</em></h1><p>Change one variable at a time. Predict before the reveal.</p></div><WorldLab world={state.world} revealed={status === "revealed"} submittedPrediction={predicted} onPrediction={status === "launched" && !predicted ? submitPrediction : undefined} />{status === "launched" && predicted && <div className="prediction-locked"><Check /> Prediction locked. Keep experimenting while the class gathers evidence.</div>}{status === "revealed" && <div className="revision-entry"><span className="eyebrow"><Sparkles size={13} /> FINAL STEP · REBUILD THE MODEL</span><h2>{state.world.reflectionPrompt}</h2><div className="belief-before"><span>BEFORE</span><p>{answer}</p></div><textarea rows={4} value={revision} onChange={(event) => setRevision(event.target.value)} placeholder="Now I think… because the experiment showed…" /><button className="primary-button" disabled={revision.trim().length < 10} onClick={submitRevision}>Submit my revised law <ArrowRight size={16} /></button></div>}</section> : null}
     {alreadyRevised && <section className="student-complete"><span className="completion-orb"><Check /></span><span className="eyebrow"><Sparkles size={13} /> MODEL REVISION COMPLETE</span><h1>You didn&apos;t memorize an answer.<br /><em>You changed a law.</em></h1><p>Your teacher can now see the class&apos;s conceptual shift—without attaching it to a grade.</p><div className="model-shift"><div><span>BEFORE</span><p>{answer}</p></div><ArrowRight /><div><span>AFTER</span><p>{state.revisions.find((item) => item.alias === alias)?.afterBelief}</p></div></div><Link href="/" className="secondary-button">Explore another CounterWorld</Link></section>}
   </div></Shell>;
 }
 
-function Showcase({ slug }: { slug: string }) {
-  const world = REFERENCE_WORLDS[slug] ?? REFERENCE_WORLDS.physics;
-  const related = Object.values(REFERENCE_WORLDS).filter((item) => item.slug !== world.slug);
-  return <Shell minimal><AppHeader role="Explorer" /><div className="showcase-shell"><Link href="/" className="back-link"><ArrowLeft /> Back to world library</Link><div className="showcase-heading"><div><span className="eyebrow"><BookOpen size={13} /> VERIFIED REFERENCE WORLD</span><h1>{world.title}</h1><p>{world.domain}</p></div><div className="showcase-laws"><span><b>COUNTERFACTUAL LAW</b>{world.misconceptionLaw}</span><ArrowRight /><span><b>CANONICAL LAW</b>{world.canonicalLaw}</span></div></div><WorldLab slug={world.slug} revealed /><div className="related-worlds"><span>CONTINUE EXPLORING</span>{related.map((item) => <Link href={`/showcase/${item.slug}`} key={item.slug}>{item.domain}<b>{item.title}</b><ArrowRight /></Link>)}</div></div></Shell>;
-}
-
-export function CounterWorldsApp({ mode, initialCode = "ORBIT7", showcaseSlug = "physics" }: Props) {
+export function CounterWorldsApp({ mode, initialCode = "" }: Props) {
   if (mode === "teacher") return <TeacherConsole code={initialCode} />;
   if (mode === "student") return <StudentExperience code={initialCode} />;
-  if (mode === "showcase") return <Showcase slug={showcaseSlug} />;
   return <Landing />;
 }

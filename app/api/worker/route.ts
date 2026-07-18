@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { completeJob, getNextJob } from "../../../lib/classroom-store";
+import { completeJob, getNextJob, updateJobProgress } from "../../../lib/classroom-store";
 import { validateWorldHtml, withSandboxCsp } from "../../../lib/world-validator";
 import { WorldManifestSchema } from "../../../lib/counterworlds";
 
@@ -20,6 +20,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    if (body.status === "generating" || body.status === "validating") {
+      await updateJobProgress(bearer(request), {
+        jobId: String(body.jobId),
+        status: body.status,
+        stage: String(body.stage ?? "Generation in progress"),
+        progress: Number(body.progress ?? 50),
+      });
+      return NextResponse.json({ ok: true });
+    }
     if (body.status === "failed") {
       await completeJob(bearer(request), { jobId: String(body.jobId), worldSlug: String(body.worldSlug ?? "generated"), manifest: body.manifest ?? {}, status: "failed", error: String(body.error ?? "Generation failed") });
       return NextResponse.json({ ok: true });
