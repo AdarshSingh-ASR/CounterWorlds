@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { buildClusters, classifyResponse, GenerationRequestSchema, REFERENCE_WORLDS, WorldManifestSchema } from "../lib/counterworlds";
 import { validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
@@ -35,4 +36,15 @@ test("blocks network and escape capabilities in generated worlds", () => {
   assert.equal(validateWorldHtml(base.replace("</body>", "<script>fetch('https://evil.test')</script></body>")).valid, false);
   assert.equal(validateWorldHtml(base.replace("</body>", "<script>window.parent.location='https://evil.test'</script></body>")).valid, false);
   assert.match(withSandboxCsp(base), /Content-Security-Policy/);
+});
+
+test("Supabase migration creates private, RLS-protected persistence", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20260718170000_counterworlds.sql", import.meta.url), "utf8");
+  for (const table of ["sessions", "memberships", "responses", "predictions", "revisions", "generation_jobs", "worlds"]) {
+    assert.match(sql, new RegExp(`create table if not exists public\\.${table}`));
+    assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`));
+  }
+  assert.match(sql, /storage\.buckets/);
+  assert.match(sql, /'counterworlds', 'counterworlds', false/);
+  assert.match(sql, /revoke all[\s\S]*from anon, authenticated/);
 });

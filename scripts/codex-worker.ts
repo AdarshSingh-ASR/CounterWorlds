@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { WorldManifestSchema, type GenerationRequest } from "../lib/counterworlds";
 import { validateWorldHtml } from "../lib/world-validator";
 
-const baseUrl = process.env.COUNTERWORLDS_BASE_URL ?? "http://localhost:3003";
+const baseUrl = process.env.COUNTERWORLDS_BASE_URL ?? "http://localhost:3000";
 const workerToken = process.env.COUNTERWORLDS_WORKER_TOKEN ?? "counterworlds-local-dev";
 const once = process.argv.includes("--once");
 type Job = GenerationRequest & { jobId: string };
