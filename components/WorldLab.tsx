@@ -33,7 +33,7 @@ export function WorldLab({ world, revealed = false, compact = false, onPredictio
     <section className={`world-lab generated-world-lab ${compact ? "world-lab-compact" : ""}`}>
       <div className="lab-heading">
         <div><span className="eyebrow"><FlaskConical size={13} /> LIVE GENERATED EXPERIMENT</span><h2>{world.title}</h2></div>
-        <span className="model-chip"><Sparkles size={13} /> {world.sourceModel} · sandbox verified</span>
+        <span className="model-chip"><Sparkles size={13} /> sandbox verified</span>
       </div>
       <p className="lab-prompt">{world.predictionPrompt}</p>
       <iframe

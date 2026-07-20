@@ -62,3 +62,14 @@ test("generated HTML uses a Supabase-supported storage MIME type", () => {
   assert.doesNotMatch(route, /"content-type": object\.contentType/);
   assert.match(worldLab, /\?format=html-v1/);
 });
+
+test("generation retries a rejected artifact and classroom UI hides model names", () => {
+  const workflow = readFileSync(new URL("../workflows/generate-counterworld.ts", import.meta.url), "utf8");
+  const classroom = readFileSync(new URL("../components/CounterWorldsApp.tsx", import.meta.url), "utf8");
+  const worldLab = readFileSync(new URL("../components/WorldLab.tsx", import.meta.url), "utf8");
+  assert.match(workflow, /attempt < 2/);
+  assert.match(workflow, /previousAttemptRejected/);
+  assert.match(workflow, /Building the interactive experiment/);
+  assert.doesNotMatch(classroom, /GEMINI 2\.5 FLASH · VERTEX AI|GPT-5\.6 SOL · OPENAI|state\.world\.sourceModel/);
+  assert.doesNotMatch(worldLab, /\{world\.sourceModel\}/);
+});

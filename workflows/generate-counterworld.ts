@@ -33,7 +33,7 @@ Return one JSON object with a manifest and a complete self-contained HTML docume
 Every supplied response alias must appear in exactly one misconception cluster. Invent no aliases. Manifest color values are violet, cyan, or amber for schema compatibility; the rendered HTML itself uses lime and emerald. The manifest contract version is cw-world-v2.`;
 }
 
-function userBrief(job: GenerationBrief) {
+function userBrief(job: GenerationBrief, validationFeedback: string[] = []) {
   return JSON.stringify({
     question: job.question,
     learningObjective: job.learning_objective,
@@ -42,6 +42,7 @@ function userBrief(job: GenerationBrief) {
     responses: job.responses,
     requiredModel: job.model,
     requiredProvider: job.provider,
+    ...(validationFeedback.length ? { previousAttemptRejected: validationFeedback, instruction: "Regenerate the complete artifact without any rejected construct." } : {}),
   });
 }
 
@@ -63,14 +64,14 @@ async function openAiKey(job: GenerationBrief) {
   return decryptSecret(row.data);
 }
 
-async function generateWithOpenAI(job: GenerationBrief) {
+async function generateWithOpenAI(job: GenerationBrief, validationFeedback: string[] = []) {
   const client = new OpenAI({ apiKey: await openAiKey(job) });
   const response = await client.responses.parse({
     model: "gpt-5.6-sol",
     reasoning: { effort: "medium" },
     input: [
       { role: "developer", content: systemContract() },
-      { role: "user", content: userBrief(job) },
+      { role: "user", content: userBrief(job, validationFeedback) },
     ],
     text: { format: zodTextFormat(ProviderOutputSchema, "counterworld") },
   });
@@ -88,7 +89,7 @@ function vertexCredentials() {
   }
 }
 
-async function generateWithVertex(job: GenerationBrief) {
+async function generateWithVertex(job: GenerationBrief, validationFeedback: string[] = []) {
   const credentials = vertexCredentials();
   const client = new GoogleGenAI({
     vertexai: true,
@@ -99,7 +100,7 @@ async function generateWithVertex(job: GenerationBrief) {
   });
   const response = await client.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: userBrief(job),
+    contents: userBrief(job, validationFeedback),
     config: {
       systemInstruction: systemContract(),
       temperature: 0.2,
@@ -113,7 +114,19 @@ async function generateWithVertex(job: GenerationBrief) {
 
 async function generateStep(job: GenerationBrief): Promise<ProviderOutput> {
   "use step";
-  return job.provider === "openai" ? generateWithOpenAI(job) : generateWithVertex(job);
+  let feedback: string[] = [];
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const output = job.provider === "openai" ? await generateWithOpenAI(job, feedback) : await generateWithVertex(job, feedback);
+    try {
+      verifyAliasMapping(job, output);
+      const validation = validateWorldHtml(withSandboxCsp(output.html));
+      if (validation.valid) return output;
+      feedback = validation.errors;
+    } catch (error) {
+      feedback = [error instanceof Error ? error.message : "Generated artifact failed validation"];
+    }
+  }
+  throw new Error(`Generated world failed validation: ${feedback.join("; ")}`);
 }
 
 function verifyAliasMapping(job: GenerationBrief, output: ProviderOutput) {
@@ -147,7 +160,7 @@ export async function generateCounterWorld(jobId: string) {
   "use workflow";
   try {
     const job = await loadJobStep(jobId);
-    await markStep(jobId, "generating", `Generating with ${job.model}`, 46);
+    await markStep(jobId, "generating", "Building the interactive experiment", 46);
     const generated = await generateStep(job);
     await markStep(jobId, "validating", "Validating evidence and sandbox safety", 78);
     const validated = await validateStep(job, generated);
