@@ -54,6 +54,9 @@ test("real-data-only migration removes the seeded classroom and fallback status"
 
 test("generated HTML uses a Supabase-supported storage MIME type", () => {
   const store = readFileSync(new URL("../lib/classroom-store.ts", import.meta.url), "utf8");
+  const route = readFileSync(new URL("../app/api/worlds/[slug]/route.ts", import.meta.url), "utf8");
   assert.match(store, /upload\(artifactKey, payload\.html, \{ contentType: "text\/html", upsert: true \}\)/);
   assert.doesNotMatch(store, /contentType: "text\/html; charset=utf-8"/);
+  assert.match(route, /"content-type": "text\/html; charset=utf-8"/);
+  assert.doesNotMatch(route, /"content-type": object\.contentType/);
 });
