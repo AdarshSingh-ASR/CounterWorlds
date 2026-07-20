@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { buildClusters, GenerationRequestSchema, WorldManifestSchema } from "../lib/counterworlds";
-import { validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
+import { sanitizeWorldPresentation, validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
 
 test("builds the constellation only from model-generated response mappings", () => {
   const manifest = WorldManifestSchema.parse({
@@ -32,6 +32,11 @@ test("blocks network and escape capabilities in generated worlds", () => {
   assert.equal(validateWorldHtml(base.replace("</body>", "<script>fetch('https://evil.test')</script></body>")).valid, false);
   assert.equal(validateWorldHtml(base.replace("</body>", "<script>window.parent.location='https://evil.test'</script></body>")).valid, false);
   assert.match(withSandboxCsp(base), /Content-Security-Policy/);
+});
+
+test("sanitizes provider names from learner-facing world artifacts", () => {
+  const sanitized = sanitizeWorldPresentation("Gemini 2.5 Flash · Vertex AI; gpt-5.6-sol; OpenAI");
+  assert.equal(sanitized, "validated experiment · validated experiment; validated experiment; validated experiment");
 });
 
 test("Supabase migration creates private, RLS-protected persistence", () => {

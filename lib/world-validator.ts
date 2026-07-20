@@ -22,3 +22,8 @@ export function withSandboxCsp(html: string) {
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; media-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">`;
   return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (match) => `${match}${csp}`) : html.replace(/<html[^>]*>/i, (match) => `${match}<head>${csp}</head>`);
 }
+
+/** Remove infrastructure/provider branding from learner-facing artifacts. */
+export function sanitizeWorldPresentation(html: string) {
+  return html.replace(/gemini\s*2\.5\s*flash|gemini-2\.5-flash|gpt[-\s]?5\.6[-\s]*sol|vertex\s*ai|openai/gi, "validated experiment");
+}

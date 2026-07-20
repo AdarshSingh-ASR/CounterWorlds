@@ -6,7 +6,7 @@ import { WorldManifestSchema, type GenerationProvider } from "../lib/counterworl
 import { decryptSecret } from "../lib/security";
 import { getSupabaseAdmin } from "../lib/supabase-server";
 import { failGeneration, getGenerationJob, publishGeneration, updateGenerationJob } from "../lib/classroom-store";
-import { validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
+import { sanitizeWorldPresentation, validateWorldHtml, withSandboxCsp } from "../lib/world-validator";
 
 const ProviderOutputSchema = z.object({
   manifest: WorldManifestSchema,
@@ -119,7 +119,7 @@ async function generateStep(job: GenerationBrief): Promise<ProviderOutput> {
     const output = job.provider === "openai" ? await generateWithOpenAI(job, feedback) : await generateWithVertex(job, feedback);
     try {
       verifyAliasMapping(job, output);
-      const validation = validateWorldHtml(withSandboxCsp(output.html));
+      const validation = validateWorldHtml(withSandboxCsp(sanitizeWorldPresentation(output.html)));
       if (validation.valid) return output;
       feedback = validation.errors;
     } catch (error) {
@@ -140,7 +140,7 @@ function verifyAliasMapping(job: GenerationBrief, output: ProviderOutput) {
 async function validateStep(job: GenerationBrief, output: ProviderOutput) {
   "use step";
   verifyAliasMapping(job, output);
-  const html = withSandboxCsp(output.html);
+  const html = withSandboxCsp(sanitizeWorldPresentation(output.html));
   const validation = validateWorldHtml(html);
   if (!validation.valid) throw new Error(`Generated world failed validation: ${validation.errors.join("; ")}`);
   return { ...output, html };
