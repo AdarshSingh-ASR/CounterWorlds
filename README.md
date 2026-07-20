@@ -20,6 +20,10 @@ CounterWorlds preserves productive struggle. A teacher sees which models changed
 
 ## Product flow
 
+![CounterWorlds learning loop](./docs/counterworlds-learning-loop.svg)
+
+The diagram above shows the complete classroom loop: a teacher creates a real session, anonymous students explain their thinking, competing mental models become synchronized worlds, and evidence drives a measurable belief revision.
+
 ```mermaid
 flowchart LR
   T[Teacher: ask a STEM question] --> R[Anonymous student explanations]

@@ -1,0 +1,558 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="cw-title cw-desc">
+  <title id="cw-title">CounterWorlds product architecture and learning loop</title>
+  <desc id="cw-desc">A six-stage observatory-style product diagram showing a teacher creating a classroom, anonymous students explaining their thinking, misconceptions becoming competing worlds, a synchronized counterworld experiment, an evidence reveal, and belief revision returning to the teacher.</desc>
+
+  <defs>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      text {
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        fill: #f3f5ed;
+        text-rendering: geometricPrecision;
+      }
+
+      .mono {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        letter-spacing: 1.7px;
+      }
+
+      .eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        fill: #8e9a87;
+      }
+
+      .step-title {
+        font-size: 16px;
+        font-weight: 520;
+        letter-spacing: -0.2px;
+      }
+
+      .micro {
+        font-size: 9px;
+        fill: #85917f;
+      }
+
+      .small {
+        font-size: 11px;
+        fill: #b7c0af;
+      }
+
+      .body {
+        font-size: 12px;
+        fill: #e5e9df;
+      }
+
+      .panel {
+        fill: #090b08;
+        stroke: #95aa8a;
+        stroke-opacity: 0.2;
+        stroke-width: 1;
+      }
+
+      .panel-raised {
+        fill: #0d100c;
+        stroke: #adc0a1;
+        stroke-opacity: 0.23;
+        stroke-width: 1;
+      }
+
+      .hairline {
+        fill: none;
+        stroke: #8d9e86;
+        stroke-opacity: 0.3;
+        stroke-width: 1;
+      }
+
+      .emerald-line {
+        fill: none;
+        stroke: #38d86c;
+        stroke-opacity: 0.72;
+        stroke-width: 1;
+      }
+
+      .lime-line {
+        fill: none;
+        stroke: #bafc46;
+        stroke-opacity: 0.78;
+        stroke-width: 1;
+      }
+
+      .step-number {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        fill: #f3f5ed;
+        letter-spacing: 1px;
+      }
+
+      .star {
+        fill: #c8d7c0;
+        opacity: 0.42;
+      }
+
+      #mobile-layout {
+        display: none;
+      }
+
+      @media (max-width: 700px) {
+        #desktop-layout {
+          display: none;
+        }
+
+        #mobile-layout {
+          display: inline;
+        }
+      }
+    </style>
+
+    <filter id="soft-glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <marker id="arrow-neutral" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0 0L7 3.5L0 7Z" fill="#94a28d" fill-opacity="0.65"/>
+    </marker>
+    <marker id="arrow-lime" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0 0L7 3.5L0 7Z" fill="#bafc46" fill-opacity="0.8"/>
+    </marker>
+
+    <symbol id="orbit-mark" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="3" fill="#f3f5ed"/>
+      <circle cx="20" cy="20" r="10" fill="none" stroke="#a9b9a0" stroke-opacity="0.42"/>
+      <ellipse cx="20" cy="20" rx="17" ry="7" fill="none" stroke="#a9b9a0" stroke-opacity="0.58" transform="rotate(-22 20 20)"/>
+      <circle cx="35" cy="14" r="2" fill="#38d86c"/>
+    </symbol>
+
+    <symbol id="person-icon" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor"/>
+      <path d="M5.5 20c.7-4.2 2.8-6.3 6.5-6.3s5.8 2.1 6.5 6.3" fill="none" stroke="currentColor" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="link-icon" viewBox="0 0 24 24">
+      <circle cx="6" cy="8" r="2" fill="currentColor"/>
+      <circle cx="18" cy="6" r="2" fill="currentColor"/>
+      <circle cx="12" cy="18" r="2" fill="currentColor"/>
+      <path d="M7.8 7.7L16.1 6.3M7 9.7l4 6.4m5.8-8.2l-3.7 8.2" fill="none" stroke="currentColor" stroke-opacity="0.7"/>
+    </symbol>
+  </defs>
+
+  <rect width="1600" height="900" fill="#030303"/>
+
+  <!-- Quiet observatory field -->
+  <g aria-hidden="true">
+    <circle cx="1412" cy="72" r="120" class="hairline" opacity="0.18"/>
+    <circle cx="1412" cy="72" r="78" class="hairline" opacity="0.2"/>
+    <path d="M1275 72H1549M1412 -65V209" class="hairline" opacity="0.12"/>
+    <circle cx="117" cy="827" r="154" class="hairline" opacity="0.12"/>
+    <circle cx="117" cy="827" r="104" class="hairline" opacity="0.14"/>
+    <path d="M-37 827H271M117 673V981" class="hairline" opacity="0.1"/>
+    <circle cx="45" cy="114" r="1.3" class="star"/>
+    <circle cx="221" cy="41" r="1" class="star"/>
+    <circle cx="474" cy="126" r="1.4" class="star"/>
+    <circle cx="699" cy="70" r="1" class="star"/>
+    <circle cx="934" cy="121" r="1.2" class="star"/>
+    <circle cx="1198" cy="48" r="1.1" class="star"/>
+    <circle cx="1516" cy="166" r="1.2" class="star"/>
+    <circle cx="1555" cy="527" r="1" class="star"/>
+    <circle cx="27" cy="484" r="1.2" class="star"/>
+    <circle cx="366" cy="822" r="1.1" class="star"/>
+    <circle cx="1006" cy="846" r="1.3" class="star"/>
+    <circle cx="1486" cy="817" r="1.1" class="star"/>
+  </g>
+
+  <g id="desktop-layout">
+    <!-- Header -->
+    <g>
+      <use href="#orbit-mark" x="60" y="49" width="44" height="44"/>
+      <text x="118" y="57" class="eyebrow mono">COUNTERWORLDS / PRODUCT ARCHITECTURE</text>
+      <text x="118" y="94" font-size="35" font-weight="300" letter-spacing="-1.2">Turn wrong answers into playable universes.</text>
+      <text x="118" y="121" class="small">A classroom learning loop where explanations become worlds, worlds become experiments, and evidence changes minds.</text>
+
+      <g transform="translate(1221 51)">
+        <rect width="111" height="27" rx="13.5" class="panel-raised"/>
+        <circle cx="15" cy="13.5" r="3" fill="#38d86c"/>
+        <text x="27" y="17" class="eyebrow mono" fill="#c7d1c1">ANONYMOUS</text>
+        <rect x="121" width="99" height="27" rx="13.5" class="panel-raised"/>
+        <circle cx="136" cy="13.5" r="3" fill="#38d86c"/>
+        <text x="148" y="17" class="eyebrow mono" fill="#c7d1c1">LIVE LOOP</text>
+        <rect x="230" width="99" height="27" rx="13.5" class="panel-raised"/>
+        <circle cx="245" cy="13.5" r="3" fill="#38d86c"/>
+        <text x="257" y="17" class="eyebrow mono" fill="#c7d1c1">EVIDENCE</text>
+      </g>
+    </g>
+
+    <path d="M60 166H1540" class="hairline" opacity="0.58"/>
+    <circle cx="60" cy="166" r="2" fill="#38d86c"/>
+    <text x="1540" y="154" text-anchor="end" class="micro mono">COMPLETE LEARNING LOOP / 01—06</text>
+
+    <!-- Stage connectors -->
+    <g aria-hidden="true">
+      <path d="M290 476H307" class="hairline" marker-end="url(#arrow-neutral)"/>
+      <path d="M540 476H557" class="hairline" marker-end="url(#arrow-neutral)"/>
+      <path d="M790 476H807" class="hairline" marker-end="url(#arrow-neutral)"/>
+      <path d="M1040 476H1057" class="hairline" marker-end="url(#arrow-neutral)"/>
+      <path d="M1290 476H1307" class="hairline" marker-end="url(#arrow-neutral)"/>
+    </g>
+
+    <!-- 01 Teacher creates a classroom -->
+    <g id="stage-01">
+      <rect x="60" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M78 200H272" stroke="#38d86c" stroke-opacity="0.46"/>
+      <rect x="78" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="95.5" y="235" text-anchor="middle" class="step-number">01</text>
+      <text x="78" y="266" class="step-title">Teacher creates</text>
+      <text x="78" y="286" class="step-title">a classroom</text>
+
+      <rect x="78" y="305" width="194" height="264" rx="12" class="panel-raised"/>
+      <g transform="translate(91 319)" color="#aebaa8">
+        <use href="#person-icon" width="18" height="18"/>
+      </g>
+      <text x="116" y="332" class="eyebrow mono">TEACHER CONSOLE</text>
+      <path d="M91 346H259" class="hairline"/>
+
+      <text x="91" y="367" class="micro mono">QUESTION</text>
+      <rect x="91" y="376" width="168" height="7" rx="3.5" fill="#c7d1c1" opacity="0.16"/>
+      <rect x="91" y="388" width="114" height="5" rx="2.5" fill="#c7d1c1" opacity="0.1"/>
+
+      <text x="91" y="417" class="micro mono">LEARNING OBJECTIVE</text>
+      <rect x="91" y="426" width="145" height="6" rx="3" fill="#c7d1c1" opacity="0.14"/>
+      <rect x="91" y="437" width="96" height="5" rx="2.5" fill="#c7d1c1" opacity="0.09"/>
+
+      <text x="91" y="466" class="micro mono">CANONICAL MODEL</text>
+      <rect x="91" y="475" width="168" height="39" rx="7" fill="#070807" stroke="#809078" stroke-opacity="0.2"/>
+      <circle cx="103" cy="487" r="2" fill="#38d86c" opacity="0.8"/>
+      <path d="M111 487H243M103 499H225" class="hairline"/>
+
+      <rect x="91" y="528" width="168" height="28" rx="7" fill="#152018" stroke="#38d86c" stroke-opacity="0.55"/>
+      <text x="175" y="546" text-anchor="middle" font-size="10.5" fill="#f3f5ed">Create live classroom</text>
+
+      <rect x="78" y="584" width="194" height="132" rx="12" class="panel-raised"/>
+      <text x="94" y="607" class="eyebrow mono">CLASSROOM CODE</text>
+      <circle cx="253" cy="603" r="3" fill="#38d86c"/>
+      <g font-family="SFMono-Regular, Consolas, monospace" font-size="12" font-weight="700" text-anchor="middle">
+        <rect x="94" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="105.5" y="641">C</text>
+        <rect x="122" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="133.5" y="641">W</text>
+        <rect x="150" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="161.5" y="641">4</text>
+        <rect x="178" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="189.5" y="641">2</text>
+        <rect x="206" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="217.5" y="641">X</text>
+        <rect x="234" y="621" width="23" height="30" rx="5" fill="#070807" stroke="#9cad94" stroke-opacity="0.28"/><text x="245.5" y="641">9</text>
+      </g>
+      <path d="M94 669H256" class="hairline"/>
+      <text x="94" y="690" class="micro mono">SHARE • LIVE • TEMPORARY</text>
+    </g>
+
+    <!-- 02 Students join anonymously -->
+    <g id="stage-02">
+      <rect x="310" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M328 200H522" stroke="#38d86c" stroke-opacity="0.46"/>
+      <rect x="328" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="345.5" y="235" text-anchor="middle" class="step-number">02</text>
+      <text x="328" y="266" class="step-title">Students join</text>
+      <text x="328" y="286" class="step-title">anonymously</text>
+
+      <rect x="334" y="305" width="182" height="375" rx="24" fill="#070807" stroke="#a5b49d" stroke-opacity="0.28"/>
+      <rect x="394" y="316" width="62" height="5" rx="2.5" fill="#93a18c" opacity="0.28"/>
+      <circle cx="425" cy="351" r="16" fill="#0d100c" stroke="#38d86c" stroke-opacity="0.5"/>
+      <g transform="translate(413 339)" color="#c7d1c1"><use href="#person-icon" width="24" height="24"/></g>
+      <text x="425" y="384" text-anchor="middle" font-size="13" font-weight="560">Join anonymously</text>
+      <text x="425" y="403" text-anchor="middle" class="micro">No account required</text>
+
+      <text x="352" y="433" class="micro mono">CHOOSE A CLASSROOM NICKNAME</text>
+      <rect x="352" y="443" width="146" height="35" rx="7" class="panel-raised"/>
+      <text x="364" y="465" class="small" opacity="0.7">Your nickname</text>
+
+      <text x="352" y="506" class="micro mono">EXPLAIN</text>
+      <rect x="352" y="516" width="146" height="78" rx="7" class="panel-raised"/>
+      <path d="M364 532H483M364 545H471M364 558H480" class="hairline"/>
+      <rect x="352" y="608" width="146" height="31" rx="7" fill="#152018" stroke="#38d86c" stroke-opacity="0.48"/>
+      <text x="425" y="628" text-anchor="middle" font-size="10.5">Enter classroom</text>
+      <circle cx="425" cy="660" r="3" fill="#81907b" opacity="0.5"/>
+
+      <rect x="328" y="695" width="194" height="25" rx="12.5" fill="#0d100c" stroke="#38d86c" stroke-opacity="0.28"/>
+      <path d="M343 704v5c0 4 3 6 6 8 3-2 6-4 6-8v-5l-6-2-6 2Z" fill="none" stroke="#38d86c" stroke-opacity="0.7"/>
+      <text x="363" y="712" class="mono" font-size="7.4" font-weight="700" fill="#9eaa98" letter-spacing="1.25">NO ACCOUNT • NO PERSONAL INFO</text>
+    </g>
+
+    <!-- 03 Misconceptions become worlds -->
+    <g id="stage-03">
+      <rect x="560" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M578 200H772" stroke="#38d86c" stroke-opacity="0.46"/>
+      <rect x="578" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="595.5" y="235" text-anchor="middle" class="step-number">03</text>
+      <text x="578" y="266" class="step-title">Misconceptions become</text>
+      <text x="578" y="286" class="step-title">competing worlds</text>
+
+      <rect x="578" y="305" width="194" height="411" rx="12" class="panel-raised"/>
+      <text x="593" y="327" class="eyebrow mono">ANONYMOUS BELIEF MAP</text>
+      <circle cx="751" cy="323" r="3" fill="#38d86c"/>
+      <path d="M594 338H756" class="hairline"/>
+
+      <g aria-label="Anonymous belief nodes">
+        <path d="M603 365C620 406 625 436 637 477M629 357C637 404 642 433 642 477M654 373C651 415 649 444 646 477M687 361C676 407 673 440 665 477M714 373C701 414 693 445 674 477M742 357C721 406 705 443 680 477" class="hairline"/>
+        <path d="M603 365C640 410 672 445 689 477M629 357C664 402 683 435 694 477M654 373C680 410 696 443 701 477M687 361C700 403 706 436 707 477M714 373C716 414 714 445 712 477M742 357C731 406 722 443 717 477" class="hairline"/>
+        <circle cx="603" cy="365" r="5" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.64"/>
+        <circle cx="629" cy="357" r="4" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.54"/>
+        <circle cx="654" cy="373" r="5" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.64"/>
+        <circle cx="687" cy="361" r="4" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.54"/>
+        <circle cx="714" cy="373" r="5" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.64"/>
+        <circle cx="742" cy="357" r="4" fill="#0a0c09" stroke="#b7c4af" stroke-opacity="0.54"/>
+      </g>
+
+      <text x="675" y="429" text-anchor="middle" class="micro mono">EXPLANATIONS CLUSTER</text>
+
+      <g aria-label="Two equally weighted competing model clusters">
+        <circle cx="643" cy="525" r="35" fill="#0a0d0a" stroke="#38d86c" stroke-opacity="0.42"/>
+        <circle cx="643" cy="525" r="24" fill="none" stroke="#a9b8a2" stroke-opacity="0.34"/>
+        <ellipse cx="643" cy="525" rx="32" ry="12" fill="none" stroke="#a9b8a2" stroke-opacity="0.36" transform="rotate(-20 643 525)"/>
+        <circle cx="643" cy="525" r="4" fill="#38d86c"/>
+        <circle cx="610" cy="512" r="2" fill="#c9d3c3"/>
+
+        <circle cx="707" cy="525" r="35" fill="#0a0d0a" stroke="#38d86c" stroke-opacity="0.42"/>
+        <circle cx="707" cy="525" r="24" fill="none" stroke="#a9b8a2" stroke-opacity="0.34"/>
+        <ellipse cx="707" cy="525" rx="32" ry="12" fill="none" stroke="#a9b8a2" stroke-opacity="0.36" transform="rotate(20 707 525)"/>
+        <circle cx="707" cy="525" r="4" fill="#38d86c"/>
+        <circle cx="740" cy="512" r="2" fill="#c9d3c3"/>
+
+        <text x="643" y="582" text-anchor="middle" class="eyebrow mono" fill="#f3f5ed">WORLD A</text>
+        <text x="707" y="582" text-anchor="middle" class="eyebrow mono" fill="#f3f5ed">WORLD B</text>
+      </g>
+
+      <path d="M594 609H756" class="hairline"/>
+      <g transform="translate(594 625)">
+        <circle cx="8" cy="8" r="8" fill="#10140f" stroke="#789174" stroke-opacity="0.3"/>
+        <path d="M5 8h6M8 5v6" stroke="#aebaa8" stroke-opacity="0.72"/>
+        <text x="24" y="7" class="micro mono">IDENTITIES HIDDEN</text>
+        <text x="24" y="21" class="small">Models compete, not students.</text>
+      </g>
+    </g>
+
+    <!-- 04 Live counterworld experiment -->
+    <g id="stage-04">
+      <rect x="810" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M828 200H1022" stroke="#38d86c" stroke-opacity="0.46"/>
+      <rect x="828" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="845.5" y="235" text-anchor="middle" class="step-number">04</text>
+      <text x="828" y="266" class="step-title">Live counterworld</text>
+      <text x="828" y="286" class="step-title">experiment</text>
+
+      <rect x="828" y="305" width="194" height="385" rx="12" class="panel-raised"/>
+      <text x="843" y="327" class="eyebrow mono">SYNCHRONIZED TEST</text>
+      <circle cx="1002" cy="323" r="3" fill="#38d86c"/>
+      <path d="M843 338H1007" class="hairline"/>
+
+      <g aria-label="World A experiment panel">
+        <rect x="843" y="352" width="75" height="156" rx="8" fill="#080a08" stroke="#9baa94" stroke-opacity="0.25"/>
+        <text x="880.5" y="371" text-anchor="middle" class="eyebrow mono" fill="#e8ece3">WORLD A</text>
+        <path d="M851 384H910" class="hairline"/>
+        <path d="M854 457H907M862 402V465" class="hairline"/>
+        <rect x="867" y="429" width="20" height="20" rx="3" fill="#141914" stroke="#38d86c" stroke-opacity="0.6"/>
+        <path d="M887 439H901" class="emerald-line" marker-end="url(#arrow-neutral)"/>
+        <text x="880.5" y="485" text-anchor="middle" class="micro mono">a = 2.0 m/s²</text>
+        <circle cx="880.5" cy="497" r="2" fill="#38d86c"/>
+      </g>
+
+      <g aria-label="World B experiment panel">
+        <rect x="932" y="352" width="75" height="156" rx="8" fill="#080a08" stroke="#9baa94" stroke-opacity="0.25"/>
+        <text x="969.5" y="371" text-anchor="middle" class="eyebrow mono" fill="#e8ece3">WORLD B</text>
+        <path d="M940 384H999" class="hairline"/>
+        <path d="M943 457H996M951 402V465" class="hairline"/>
+        <rect x="956" y="429" width="20" height="20" rx="3" fill="#141914" stroke="#38d86c" stroke-opacity="0.6"/>
+        <path d="M976 439H990" class="emerald-line" marker-end="url(#arrow-neutral)"/>
+        <text x="969.5" y="485" text-anchor="middle" class="micro mono">a = 4.0 m/s²</text>
+        <circle cx="969.5" cy="497" r="2" fill="#38d86c"/>
+      </g>
+
+      <rect x="843" y="523" width="164" height="25" rx="12.5" fill="#101510" stroke="#38d86c" stroke-opacity="0.32"/>
+      <path d="M856 535h14m-4-4 4 4-4 4M994 535h-14m4-4-4 4 4 4" class="emerald-line"/>
+      <text x="925" y="540" text-anchor="middle" class="eyebrow mono" fill="#d9e0d5">SAME CONTROLS</text>
+
+      <text x="843" y="568" class="micro mono">FORCE</text>
+      <path d="M885 565H1007" class="hairline"/>
+      <circle cx="971" cy="565" r="5" fill="#0d100c" stroke="#38d86c" stroke-opacity="0.78"/>
+      <text x="843" y="593" class="micro mono">MASS</text>
+      <path d="M885 590H1007" class="hairline"/>
+      <circle cx="935" cy="590" r="5" fill="#0d100c" stroke="#38d86c" stroke-opacity="0.78"/>
+
+      <rect x="843" y="610" width="164" height="36" rx="8" fill="#080a08" stroke="#8f9e89" stroke-opacity="0.25"/>
+      <circle cx="858" cy="628" r="7" fill="none" stroke="#a9b8a2" stroke-opacity="0.54"/>
+      <path d="M855 628l2 2 4-5" fill="none" stroke="#a9b8a2" stroke-opacity="0.72"/>
+      <text x="873" y="632" font-size="10.5">Predict before reveal</text>
+      <text x="925" y="671" text-anchor="middle" class="micro mono">BOTH WORLDS RUN TOGETHER</text>
+    </g>
+
+    <!-- 05 Evidence and reveal -->
+    <g id="stage-05">
+      <rect x="1060" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M1078 200H1272" stroke="#38d86c" stroke-opacity="0.46"/>
+      <rect x="1078" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="1095.5" y="235" text-anchor="middle" class="step-number">05</text>
+      <text x="1078" y="266" class="step-title">Evidence and</text>
+      <text x="1078" y="286" class="step-title">reveal</text>
+
+      <rect x="1078" y="305" width="194" height="167" rx="12" class="panel-raised"/>
+      <text x="1093" y="328" class="eyebrow mono">STUDENT PREDICTION</text>
+      <path d="M1093 340H1257" class="hairline"/>
+      <text x="1093" y="364" class="body">Which world matches</text>
+      <text x="1093" y="381" class="body">real evidence?</text>
+      <rect x="1093" y="397" width="76" height="27" rx="6" fill="#080a08" stroke="#a8b5a1" stroke-opacity="0.28"/>
+      <text x="1131" y="414" text-anchor="middle" class="micro mono" fill="#f3f5ed">WORLD A</text>
+      <rect x="1181" y="397" width="76" height="27" rx="6" fill="#080a08" stroke="#a8b5a1" stroke-opacity="0.28"/>
+      <text x="1219" y="414" text-anchor="middle" class="micro mono" fill="#f3f5ed">WORLD B</text>
+      <rect x="1093" y="435" width="164" height="25" rx="6" fill="#141714" stroke="#a8b5a1" stroke-opacity="0.3"/>
+      <text x="1175" y="451" text-anchor="middle" font-size="10">Submit evidence</text>
+
+      <path d="M1175 478V500" class="lime-line" marker-end="url(#arrow-lime)"/>
+      <text x="1190" y="492" class="micro mono" fill="#bafc46">REVEAL</text>
+
+      <rect x="1078" y="508" width="194" height="182" rx="12" fill="#0d120c" stroke="#bafc46" stroke-opacity="0.72"/>
+      <circle cx="1175" cy="551" r="26" fill="none" stroke="#bafc46" stroke-opacity="0.32" filter="url(#soft-glow)"/>
+      <circle cx="1175" cy="551" r="17" fill="none" stroke="#dcffa7" stroke-opacity="0.68"/>
+      <path d="M1167 551l6 6 11-13" fill="none" stroke="#dcffa7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="1175" y="594" text-anchor="middle" class="eyebrow mono" fill="#bafc46">EVIDENCE REVEAL</text>
+      <text x="1175" y="620" text-anchor="middle" font-size="12.5" font-weight="520" fill="#f3f5ed">Evidence reveals the</text>
+      <text x="1175" y="638" text-anchor="middle" font-size="12.5" font-weight="520" fill="#f3f5ed">accepted model</text>
+      <path d="M1102 660H1248" class="lime-line" opacity="0.5"/>
+      <text x="1175" y="678" text-anchor="middle" class="micro mono" fill="#dcffa7">NOT AUTHORITY — OBSERVATION</text>
+    </g>
+
+    <!-- 06 Belief revision -->
+    <g id="stage-06">
+      <rect x="1310" y="200" width="230" height="540" rx="18" class="panel"/>
+      <path d="M1328 200H1522" stroke="#bafc46" stroke-opacity="0.64"/>
+      <rect x="1328" y="220" width="35" height="23" rx="11.5" class="panel-raised"/>
+      <text x="1345.5" y="235" text-anchor="middle" class="step-number">06</text>
+      <text x="1328" y="266" class="step-title">Belief</text>
+      <text x="1328" y="286" class="step-title">revision</text>
+
+      <rect x="1328" y="305" width="194" height="188" rx="12" class="panel-raised"/>
+      <rect x="1341" y="322" width="72" height="102" rx="8" fill="#080a08" stroke="#9eab98" stroke-opacity="0.24"/>
+      <text x="1377" y="342" text-anchor="middle" class="eyebrow mono">BEFORE</text>
+      <path d="M1352 357H1402M1352 369H1397M1352 381H1402M1352 393H1389" class="hairline"/>
+      <circle cx="1377" cy="411" r="3" fill="#86917f"/>
+
+      <rect x="1437" y="322" width="72" height="102" rx="8" fill="#0b110a" stroke="#bafc46" stroke-opacity="0.52"/>
+      <text x="1473" y="342" text-anchor="middle" class="eyebrow mono" fill="#dcffa7">AFTER</text>
+      <path d="M1448 357H1498M1448 369H1493M1448 381H1498M1448 393H1485" class="lime-line" opacity="0.43"/>
+      <circle cx="1473" cy="411" r="3" fill="#bafc46"/>
+
+      <path d="M1416 373H1433" class="lime-line" marker-end="url(#arrow-lime)"/>
+      <rect x="1361" y="444" width="128" height="27" rx="13.5" fill="#121a0f" stroke="#bafc46" stroke-opacity="0.42"/>
+      <text x="1425" y="461" text-anchor="middle" class="eyebrow mono" fill="#dcffa7">MODEL SHIFT</text>
+
+      <rect x="1328" y="509" width="194" height="181" rx="12" fill="#0b0f0a" stroke="#bafc46" stroke-opacity="0.34"/>
+      <text x="1343" y="533" class="eyebrow mono" fill="#dcffa7">BACK TO THE TEACHER</text>
+      <path d="M1343 545H1507" class="lime-line" opacity="0.28"/>
+      <g>
+        <circle cx="1353" cy="568" r="8" fill="#10170e" stroke="#bafc46" stroke-opacity="0.5"/>
+        <path d="M1349 568l3 3 5-6" fill="none" stroke="#dcffa7"/>
+        <text x="1370" y="572" class="body">Beliefs changed</text>
+
+        <circle cx="1353" cy="603" r="8" fill="#10170e" stroke="#bafc46" stroke-opacity="0.5"/>
+        <path d="M1349 603l3 3 5-6" fill="none" stroke="#dcffa7"/>
+        <text x="1370" y="607" class="body">Evidence matched</text>
+
+        <circle cx="1353" cy="638" r="8" fill="#10170e" stroke="#bafc46" stroke-opacity="0.5"/>
+        <path d="M1349 638l3 3 5-6" fill="none" stroke="#dcffa7"/>
+        <text x="1370" y="642" class="body">Real classroom record</text>
+      </g>
+      <path d="M1343 659H1507" class="lime-line" opacity="0.28"/>
+      <text x="1425" y="679" text-anchor="middle" class="micro mono" fill="#bafc46">NEXT QUESTION / NEXT LOOP</text>
+    </g>
+
+    <!-- Closed-loop return path -->
+    <g aria-label="Belief revision returns to the teacher console">
+      <path d="M1425 740V768H175V743" fill="none" stroke="#bafc46" stroke-opacity="0.34" stroke-dasharray="4 7" marker-end="url(#arrow-lime)"/>
+      <rect x="677" y="755" width="246" height="26" rx="13" fill="#070807" stroke="#bafc46" stroke-opacity="0.28"/>
+      <text x="800" y="772" text-anchor="middle" class="micro mono" fill="#dcffa7">REAL CLASSROOM RECORD → NEXT LESSON</text>
+    </g>
+
+    <!-- Footer -->
+    <path d="M60 810H1540" class="hairline" opacity="0.5"/>
+    <text x="60" y="853" font-size="20" font-weight="300" letter-spacing="-0.25">AI tutors give answers. <tspan fill="#dcffa7">CounterWorlds makes beliefs testable.</tspan></text>
+    <g transform="translate(1431 832)">
+      <circle cx="18" cy="18" r="17" fill="none" stroke="#bafc46" stroke-opacity="0.32"/>
+      <circle cx="18" cy="18" r="8" fill="none" stroke="#bafc46" stroke-opacity="0.5"/>
+      <circle cx="18" cy="18" r="2.5" fill="#bafc46"/>
+      <path d="M42 18H97" class="lime-line" opacity="0.55"/>
+      <text x="97" y="14" text-anchor="end" class="micro mono" fill="#dcffa7">QUESTION</text>
+      <text x="97" y="28" text-anchor="end" class="micro mono">WORLD / TEST / SHIFT</text>
+    </g>
+  </g>
+
+  <!-- Simplified stacked composition for narrow embeds. The same 1600×900 viewBox is retained for dependable GitHub scaling. -->
+  <g id="mobile-layout">
+    <use href="#orbit-mark" x="72" y="38" width="76" height="76"/>
+    <text x="172" y="59" class="mono" font-size="22" font-weight="700" fill="#93a08c" letter-spacing="3">COUNTERWORLDS / LEARNING LOOP</text>
+    <text x="172" y="105" font-size="48" font-weight="300" letter-spacing="-1.5">Turn wrong answers into playable universes.</text>
+    <path d="M72 137H1528" class="hairline"/>
+    <path d="M115 169V796" stroke="#7f8e79" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="5 9"/>
+
+    <g>
+      <rect x="72" y="158" width="1456" height="94" rx="20" class="panel"/>
+      <circle cx="115" cy="205" r="26" class="panel-raised"/><text x="115" y="214" text-anchor="middle" font-size="24" class="mono">01</text>
+      <text x="165" y="195" font-size="30" font-weight="520">Teacher creates a classroom</text>
+      <text x="165" y="226" font-size="22" fill="#aab5a4">Question • Learning objective • Canonical model • Create live classroom</text>
+      <rect x="1167" y="181" width="323" height="48" rx="12" class="panel-raised"/>
+      <text x="1190" y="212" font-size="20" class="mono" fill="#38d86c">CLASS CODE</text><text x="1468" y="212" text-anchor="end" font-size="22" class="mono">C W 4 2 X 9</text>
+    </g>
+
+    <g>
+      <rect x="72" y="263" width="1456" height="94" rx="20" class="panel"/>
+      <circle cx="115" cy="310" r="26" class="panel-raised"/><text x="115" y="319" text-anchor="middle" font-size="24" class="mono">02</text>
+      <text x="165" y="300" font-size="30" font-weight="520">Students join anonymously</text>
+      <text x="165" y="331" font-size="22" fill="#aab5a4">Join anonymously • Choose a classroom nickname • Explain</text>
+      <rect x="1167" y="286" width="323" height="48" rx="24" fill="#0d100c" stroke="#38d86c" stroke-opacity="0.35"/>
+      <text x="1328" y="316" text-anchor="middle" font-size="18" class="mono" fill="#38d86c">NO ACCOUNT / NO PERSONAL INFO</text>
+    </g>
+
+    <g>
+      <rect x="72" y="368" width="1456" height="94" rx="20" class="panel"/>
+      <circle cx="115" cy="415" r="26" class="panel-raised"/><text x="115" y="424" text-anchor="middle" font-size="24" class="mono">03</text>
+      <text x="165" y="405" font-size="30" font-weight="520">Misconceptions become competing worlds</text>
+      <text x="165" y="436" font-size="22" fill="#aab5a4">Anonymous explanations cluster into models — identities stay hidden.</text>
+      <circle cx="1243" cy="415" r="27" fill="none" stroke="#38d86c" stroke-opacity="0.55"/><circle cx="1414" cy="415" r="27" fill="none" stroke="#38d86c" stroke-opacity="0.55"/>
+      <path d="M1270 415H1387" class="hairline"/><text x="1243" y="422" text-anchor="middle" font-size="18" class="mono">A</text><text x="1414" y="422" text-anchor="middle" font-size="18" class="mono">B</text>
+      <text x="1328" y="397" text-anchor="middle" font-size="17" class="mono" fill="#8f9d88">EQUAL WEIGHT</text>
+    </g>
+
+    <g>
+      <rect x="72" y="473" width="1456" height="94" rx="20" class="panel"/>
+      <circle cx="115" cy="520" r="26" class="panel-raised"/><text x="115" y="529" text-anchor="middle" font-size="24" class="mono">04</text>
+      <text x="165" y="510" font-size="30" font-weight="520">Live counterworld experiment</text>
+      <text x="165" y="541" font-size="22" fill="#aab5a4">World A ↔ World B • Same controls • Predict before reveal</text>
+      <rect x="1170" y="493" width="142" height="54" rx="10" class="panel-raised"/><rect x="1348" y="493" width="142" height="54" rx="10" class="panel-raised"/>
+      <text x="1241" y="514" text-anchor="middle" font-size="16" class="mono">WORLD A</text><text x="1419" y="514" text-anchor="middle" font-size="16" class="mono">WORLD B</text>
+      <text x="1241" y="537" text-anchor="middle" font-size="17" fill="#38d86c">F / M → a</text><text x="1419" y="537" text-anchor="middle" font-size="17" fill="#38d86c">F / M → a</text>
+    </g>
+
+    <g>
+      <rect x="72" y="578" width="1456" height="94" rx="20" class="panel"/>
+      <circle cx="115" cy="625" r="26" class="panel-raised"/><text x="115" y="634" text-anchor="middle" font-size="24" class="mono">05</text>
+      <text x="165" y="615" font-size="30" font-weight="520">Evidence and reveal</text>
+      <text x="165" y="646" font-size="22" fill="#aab5a4">Which world matches real evidence? • Submit evidence</text>
+      <path d="M1180 625H1280" class="lime-line" marker-end="url(#arrow-lime)"/>
+      <rect x="1300" y="600" width="190" height="50" rx="12" fill="#10150e" stroke="#bafc46" stroke-opacity="0.7"/>
+      <text x="1395" y="619" text-anchor="middle" font-size="16" class="mono" fill="#dcffa7">REVEAL</text><text x="1395" y="640" text-anchor="middle" font-size="17">Accepted model</text>
+    </g>
+
+    <g>
+      <rect x="72" y="683" width="1456" height="112" rx="20" fill="#090b08" stroke="#bafc46" stroke-opacity="0.42"/>
+      <circle cx="115" cy="739" r="26" fill="#10150e" stroke="#bafc46" stroke-opacity="0.5"/><text x="115" y="748" text-anchor="middle" font-size="24" class="mono" fill="#dcffa7">06</text>
+      <text x="165" y="723" font-size="30" font-weight="520">Belief revision</text>
+      <text x="165" y="756" font-size="22" fill="#aab5a4">BEFORE → MODEL SHIFT → AFTER</text>
+      <text x="165" y="782" font-size="19" class="mono" fill="#dcffa7">BELIEFS CHANGED • EVIDENCE MATCHED • REAL CLASSROOM RECORD</text>
+      <path d="M1470 759V816H115V796" class="lime-line" stroke-dasharray="6 9" marker-end="url(#arrow-lime)"/>
+    </g>
+
+    <path d="M72 826H1528" class="hairline"/>
+    <text x="72" y="873" font-size="32" font-weight="300">AI tutors give answers. <tspan fill="#dcffa7">CounterWorlds makes beliefs testable.</tspan></text>
+  </g>
+</svg>
