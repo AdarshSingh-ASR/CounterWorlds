@@ -47,3 +47,11 @@ test("rate-limit migration uses a timestamp value rather than PostgreSQL CURRENT
   assert.doesNotMatch(migration,/\bcurrent_time\s+timestamptz\b/i);
   assert.match(migration,/values\s*\(counter_key,\s*1,\s*request_now,/i);
 });
+
+test("permanent classroom deletion uses an in-app typed confirmation",()=>{
+  const dashboard=readFileSync(new URL("../components/Dashboard.tsx",import.meta.url),"utf8");
+  assert.doesNotMatch(dashboard,/window\.prompt/);
+  assert.match(dashboard,/role="dialog"/);
+  assert.match(dashboard,/deleteConfirmation!==deleteTarget/);
+  assert.match(dashboard,/Delete permanently/);
+});

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, ArrowRight, FlaskConical, KeyRound, LoaderCircle, Plus, Trash2, Users } from "lucide-react";
+import { Archive, ArrowRight, FlaskConical, KeyRound, LoaderCircle, Plus, Trash2, Users, X } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "../lib/auth-client";
@@ -24,6 +24,9 @@ export function Dashboard() {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [lesson, setLesson] = useState({ question:"", learningObjective:"", canonicalModel:"", domain:"Physics", aiProvider:"vertex-gemini", credentialId:"" });
 
@@ -87,12 +90,12 @@ export function Dashboard() {
     load();
   }
 
-  async function permanentlyDelete(code:string){
-    const confirmation=window.prompt(`Permanent deletion removes all classroom records and generated artifacts. Type ${code} to continue.`);
-    if(confirmation!==code)return;
-    const response=await fetch(`/api/classrooms/${code}`,{method:"DELETE",headers:{"content-type":"application/json"},body:JSON.stringify({confirmation})});
-    if(!response.ok){const payload=await response.json();setError(payload.error??"Could not permanently delete classroom");return;}
-    load();
+  async function permanentlyDelete(){
+    if(!deleteTarget||deleteConfirmation!==deleteTarget)return;
+    setDeleting(true);setError("");
+    const response=await fetch(`/api/classrooms/${deleteTarget}`,{method:"DELETE",headers:{"content-type":"application/json"},body:JSON.stringify({confirmation:deleteConfirmation})});
+    if(!response.ok){const payload=await response.json();setError(payload.error??"Could not permanently delete classroom");setDeleting(false);return;}
+    setDeleteTarget(null);setDeleteConfirmation("");setDeleting(false);await load();
   }
 
   if (loading) return <main className="portal-page"><PortalHeader/><div className="full-loading"><LoaderCircle className="spin"/><b>Opening your observatory…</b></div></main>;
@@ -112,6 +115,7 @@ export function Dashboard() {
     </form>
     <span className="portal-eyebrow">ACTIVE CLASSROOMS · {active.length}</span>
     {active.length ? <div className="dashboard-grid" style={{marginTop:16}}>{active.map((room)=><article className="classroom-card glass-panel" key={room.id}><div className="classroom-card-top"><span>{room.code}</span><b className="classroom-status">{room.status}</b></div><h3>{room.question}</h3><p>{room.domain} · {room.ai_provider === "openai" ? "GPT-5.6 Sol" : "Gemini 2.5 Flash"}</p><div className="classroom-metrics"><span><b>{room.students}</b>students</span><span><b>{room.responses}</b>beliefs</span><span><b>{room.revisions}</b>revisions</span></div><div className="classroom-card-actions"><Link href={`/teacher/${room.code}`} className="portal-button">Open <ArrowRight/></Link><button className="portal-button secondary" onClick={()=>archive(room.code,"archive")} type="button"><Archive/> Archive</button></div></article>)}</div> : <div className="empty-dashboard glass-panel"><FlaskConical/><h2>No classroom evidence yet.</h2><p>Create the first question above. Nothing is pre-seeded.</p></div>}
-    {archived.length > 0 && <><span className="portal-eyebrow" style={{display:"block",marginTop:50}}>ARCHIVED · {archived.length}</span><div className="dashboard-grid" style={{marginTop:16}}>{archived.map((room)=><article className="classroom-card glass-panel" key={room.id}><div className="classroom-card-top"><span>{room.code}</span><b className="classroom-status">PURGES IN 90 DAYS</b></div><h3>{room.question}</h3><p>{room.domain}</p><div className="classroom-metrics"><span><b>{room.students}</b><Users/> students</span><span><b>{room.changed}</b>model shifts</span></div><div className="classroom-card-actions"><button className="portal-button secondary" type="button" onClick={()=>archive(room.code,"restore")}>Restore classroom</button><button className="portal-button danger" type="button" onClick={()=>permanentlyDelete(room.code)}><Trash2/> Delete forever</button></div></article>)}</div></>}
+    {archived.length > 0 && <><span className="portal-eyebrow" style={{display:"block",marginTop:50}}>ARCHIVED · {archived.length}</span><div className="dashboard-grid" style={{marginTop:16}}>{archived.map((room)=><article className="classroom-card glass-panel" key={room.id}><div className="classroom-card-top"><span>{room.code}</span><b className="classroom-status">PURGES IN 90 DAYS</b></div><h3>{room.question}</h3><p>{room.domain}</p><div className="classroom-metrics"><span><b>{room.students}</b><Users/> students</span><span><b>{room.changed}</b>model shifts</span></div><div className="classroom-card-actions"><button className="portal-button secondary" type="button" onClick={()=>archive(room.code,"restore")}>Restore classroom</button><button className="portal-button danger" type="button" onClick={()=>{setDeleteTarget(room.code);setDeleteConfirmation("");setError("");}}><Trash2/> Delete forever</button></div></article>)}</div></>}
+    {deleteTarget&&<div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-classroom-title"><div className="create-modal glass-panel"><button className="modal-close" type="button" aria-label="Close deletion dialog" onClick={()=>{if(!deleting){setDeleteTarget(null);setDeleteConfirmation("");}}}><X/></button><span className="portal-eyebrow">IRREVERSIBLE ACTION</span><h2 id="delete-classroom-title">Delete classroom forever?</h2><p className="portal-subtitle">This immediately removes every classroom record and its generated world artifact. Type <b>{deleteTarget}</b> to confirm.</p><label>Classroom code<input autoFocus autoComplete="off" value={deleteConfirmation} onChange={(event)=>setDeleteConfirmation(event.target.value.toUpperCase())} placeholder={deleteTarget}/></label><div className="classroom-card-actions"><button className="portal-button secondary" type="button" disabled={deleting} onClick={()=>{setDeleteTarget(null);setDeleteConfirmation("");}}>Cancel</button><button className="portal-button danger" type="button" disabled={deleteConfirmation!==deleteTarget||deleting} onClick={permanentlyDelete}>{deleting?<LoaderCircle className="spin"/>:<Trash2/>}{deleting?"Deleting…":"Delete permanently"}</button></div></div></div>}
   </div></main>;
 }
