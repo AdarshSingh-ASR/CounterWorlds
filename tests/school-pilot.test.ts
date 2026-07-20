@@ -40,3 +40,10 @@ test("school-pilot migration establishes persistent identity, ownership, and lif
   for(const column of ["owner_user_id","organization_id","last_activity_at","archived_at","purge_at","access_token_hash","credential_scope","idempotency_key"])assert.match(migration,new RegExp(column));
   assert.doesNotMatch(migration,/insert\s+into\s+public\.sessions/i);
 });
+
+test("rate-limit migration uses a timestamp value rather than PostgreSQL CURRENT_TIME",()=>{
+  const migration=readFileSync(new URL("../supabase/migrations/20260720163000_fix_rate_limit_timestamp.sql",import.meta.url),"utf8");
+  assert.match(migration,/request_now\s+timestamptz\s*:=\s*clock_timestamp\(\)/i);
+  assert.doesNotMatch(migration,/\bcurrent_time\s+timestamptz\b/i);
+  assert.match(migration,/values\s*\(counter_key,\s*1,\s*request_now,/i);
+});
