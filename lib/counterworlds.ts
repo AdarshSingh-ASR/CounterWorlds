@@ -12,6 +12,11 @@ export const generationStatuses = [
 export const GenerationStatusSchema = z.enum(generationStatuses);
 export type GenerationStatus = z.infer<typeof GenerationStatusSchema>;
 
+export const GenerationProviderSchema = z.enum(["vertex-gemini", "openai"]);
+export type GenerationProvider = z.infer<typeof GenerationProviderSchema>;
+export const CredentialScopeSchema = z.enum(["platform", "organization", "personal"]);
+export type CredentialScope = z.infer<typeof CredentialScopeSchema>;
+
 export const GenerationRequestSchema = z.object({
   sessionId: z.string().min(1),
   prompt: z.string().min(10).max(800),
@@ -42,7 +47,9 @@ export const WorldManifestSchema = z.object({
   evidenceExplanation: z.string().min(1),
   reveal: z.object({ correctWorld: z.enum(["A", "B"]), explanation: z.string().min(1) }),
   reflectionPrompt: z.string().min(1),
-  sourceModel: z.literal("gpt-5.6-sol"),
+  sourceModel: z.enum(["gpt-5.6-sol", "gemini-2.5-flash"]),
+  provider: GenerationProviderSchema.default("vertex-gemini"),
+  contractVersion: z.literal("cw-world-v2").default("cw-world-v2"),
   misconceptionClusters: z.array(z.object({
     id: z.string().min(1),
     label: z.string().min(1),
@@ -69,8 +76,10 @@ export type ClassroomState = {
     learningObjective: string;
     canonicalModel: string;
     domain: string;
-    status: "collecting" | "generating" | "world-ready" | "launched" | "revealed";
+    status: "collecting" | "generating" | "world-ready" | "launched" | "revealed" | "archived";
     worldSlug: string | null;
+    aiProvider: GenerationProvider;
+    archivedAt?: string | null;
   };
   responses: Array<{ id: string; alias: string; answer: string; clusterKey: string }>;
   predictions: Array<{ alias: string; selectedWorld: "A" | "B"; evidence: string }>;
@@ -82,7 +91,8 @@ export type ClassroomState = {
     title: string;
     predictionPrompt: string;
     reflectionPrompt: string;
-    sourceModel: "gpt-5.6-sol";
+    sourceModel: "gpt-5.6-sol" | "gemini-2.5-flash";
+    provider: GenerationProvider;
     reveal: { correctWorld: "A" | "B"; explanation: string } | null;
     evidenceExplanation: string;
   } | null;

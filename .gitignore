@@ -44,3 +44,6 @@ next-env.d.ts
 /work/
 /.dev.vars
 /generated/
+/.swc
+.codex-*.log
+/artifacts/visual-qa/

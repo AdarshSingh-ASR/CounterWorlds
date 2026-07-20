@@ -128,7 +128,7 @@ function Landing() {
 }
 
 function AppHeader({ code, role, alias }: { code?: string; role: "Teacher" | "Student" | "Explorer"; alias?: string }) {
-  return <header className="app-header"><Brand /><div className="app-session-meta">{code && <span>SESSION <b>{code}</b></span>}<span className="role-chip">{role === "Teacher" ? <Telescope size={13} /> : role === "Student" ? <GraduationCap size={13} /> : <FlaskConical size={13} />}{alias ?? role}</span><Link href="/" aria-label="Exit to home"><X size={17} /></Link></div></header>;
+  return <header className="app-header"><Brand /><div className="app-session-meta">{code && <span>SESSION <b>{code}</b></span>}<span className="role-chip">{role === "Teacher" ? <Telescope size={13} /> : role === "Student" ? <GraduationCap size={13} /> : <FlaskConical size={13} />}{alias ?? role}</span><Link href={role === "Teacher" ? "/dashboard" : "/"} aria-label="Exit"><X size={17} /></Link></div></header>;
 }
 
 function LoadingState({ label = "Opening observatory…" }: { label?: string }) {
@@ -140,19 +140,19 @@ function TeacherConsole({ code }: { code: string }) {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"beliefs" | "world" | "evidence">("beliefs");
   const [copied, setCopied] = useState(false);
-  const token = typeof window !== "undefined" ? (sessionStorage.getItem(`cw-teacher-${code}`) ?? "") : "";
-
   const refresh = useCallback(async () => {
-    try { setState(await api<ClassroomState>(`/api/classroom?code=${encodeURIComponent(code)}`, { headers: { "x-counterworlds-teacher-token": token } })); setError(""); }
+    try { setState(await api<ClassroomState>(`/api/classrooms/${encodeURIComponent(code)}`)); setError(""); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Could not load classroom"); }
-  }, [code, token]);
+  }, [code]);
   useEffect(() => { const start = window.setTimeout(refresh, 0); const id = window.setInterval(refresh, 1800); return () => { clearTimeout(start); clearInterval(id); }; }, [refresh]);
 
   async function teacherAction(action: string) {
     try {
-      if (action === "queue") await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "close", code, teacherToken: token }) });
-      await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, code, teacherToken: token }) });
-      if (action === "queue") setActiveTab("world");
+      const result = await api<{ jobId?: string | null }>(`/api/classrooms/${encodeURIComponent(code)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
+      if (action === "queue") {
+        setActiveTab("world");
+        if (result.jobId) await api("/api/classrooms", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ jobId: result.jobId }) });
+      }
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Action failed"); }
   }
@@ -196,7 +196,7 @@ function TeacherConsole({ code }: { code: string }) {
           </div>}
 
           {activeTab === "world" && <div className="world-view">
-            {state.session.status === "generating" ? state.job?.status === "failed" ? <div className="generation-stage"><span className="generation-core"><X /></span><span className="eyebrow">REAL GENERATION STOPPED</span><h2>Codex did not publish<br />an unverified world.</h2><p>{state.job.error ?? "The generation worker reported an error."}</p><button className="primary-button" onClick={() => teacherAction("queue")}><WandSparkles /> Retry real generation</button><small>No cached or synthetic replacement was used.</small></div> : <div className="generation-stage"><span className="generation-core"><BrainCircuit /></span><span className="eyebrow"><Sparkles size={13} /> GPT-5.6 SOL · CODEX WORKER</span><h2>Compiling the class&apos;s<br />counterfactual universe</h2><p>{state.job?.stage ?? "Waiting for the authenticated Codex worker"}</p><div className="generation-progress"><span style={{ width: `${progress}%` }} /></div><div className="generation-steps"><span className={progress >= 22 ? "done" : "active"}>{progress >= 22 ? <Check /> : <LoaderCircle className="spin" />} Analyze</span><i /><span className={progress >= 48 ? "done" : progress >= 22 ? "active" : ""}>{progress >= 48 ? <Check /> : <CircleDot />} Generate</span><i /><span className={progress >= 78 ? "done" : progress >= 48 ? "active" : ""}><CircleDot /> Validate</span><i /><span className={progress === 100 ? "done" : ""}><Sparkles /> Publish</span></div><small>This screen reports persisted worker state only. It never simulates progress or substitutes a cached world.</small></div> : state.world ? <><div className="world-source-banner"><span><Check /> WORLD VERIFIED</span><p>The mistaken and canonical laws respond to identical controls. Labels stay hidden until the class commits.</p><b>LIVE GENERATED</b></div><WorldLab world={state.world} revealed={state.session.status === "revealed"} /></> : <div className="empty-world"><WandSparkles /><h2>Ready to compile a misconception</h2><p>{state.responses.length ? "Close the belief poll when the class has committed to its reasoning." : "At least one real student explanation is required before generation."}</p><button className="primary-button" disabled={state.responses.length === 0} onClick={() => teacherAction("queue")}><WandSparkles /> Compile CounterWorld</button></div>}
+            {state.session.status === "generating" ? state.job?.status === "failed" ? <div className="generation-stage"><span className="generation-core"><X /></span><span className="eyebrow">REAL GENERATION STOPPED</span><h2>No unverified world<br />was published.</h2><p>{state.job.error ?? "The generation workflow reported an error."}</p><button className="primary-button" onClick={() => teacherAction("queue")}><WandSparkles /> Retry real generation</button><small>No cached or synthetic replacement was used.</small></div> : <div className="generation-stage"><span className="generation-core"><BrainCircuit /></span><span className="eyebrow"><Sparkles size={13} /> {state.session.aiProvider === "openai" ? "GPT-5.6 SOL · OPENAI" : "GEMINI 2.5 FLASH · VERTEX AI"}</span><h2>Compiling the class&apos;s<br />counterfactual universe</h2><p>{state.job?.stage ?? "Waiting for the durable generation workflow"}</p><div className="generation-progress"><span style={{ width: `${progress}%` }} /></div><div className="generation-steps"><span className={progress >= 22 ? "done" : "active"}>{progress >= 22 ? <Check /> : <LoaderCircle className="spin" />} Analyze</span><i /><span className={progress >= 48 ? "done" : progress >= 22 ? "active" : ""}>{progress >= 48 ? <Check /> : <CircleDot />} Generate</span><i /><span className={progress >= 78 ? "done" : progress >= 48 ? "active" : ""}><CircleDot /> Validate</span><i /><span className={progress === 100 ? "done" : ""}><Sparkles /> Publish</span></div><small>This screen reports persisted workflow state only. It never simulates progress or substitutes a cached world.</small></div> : state.world ? <><div className="world-source-banner"><span><Check /> WORLD VERIFIED</span><p>The mistaken and canonical laws respond to identical controls. Labels stay hidden until the class commits.</p><b>{state.world.sourceModel}</b></div><WorldLab world={state.world} revealed={state.session.status === "revealed"} /></> : <div className="empty-world"><WandSparkles /><h2>Ready to compile a misconception</h2><p>{state.responses.length ? "Close the belief poll when the class has committed to its reasoning." : "At least one real student explanation is required before generation."}</p><button className="primary-button" disabled={state.responses.length === 0} onClick={() => teacherAction("queue")}><WandSparkles /> Compile CounterWorld</button></div>}
           </div>}
 
           {activeTab === "evidence" && <div className="evidence-view">
@@ -213,6 +213,8 @@ function TeacherConsole({ code }: { code: string }) {
 function StudentExperience({ code }: { code: string }) {
   const [state, setState] = useState<ClassroomState | null>(null);
   const [alias, setAlias] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [noticeAccepted, setNoticeAccepted] = useState(false);
   const [accessToken, setAccessToken] = useState("");
   const [answer, setAnswer] = useState("");
   const [revision, setRevision] = useState("");
@@ -222,7 +224,8 @@ function StudentExperience({ code }: { code: string }) {
   const [predicted, setPredicted] = useState<"A" | "B" | null>(null);
 
   const refresh = useCallback(async () => {
-    try { setState(await api<ClassroomState>(`/api/classroom?code=${encodeURIComponent(code)}`, { headers: accessToken ? { "x-counterworlds-student-token": accessToken } : {} })); setError(""); }
+    if (!accessToken) return;
+    try { setState(await api<ClassroomState>(`/api/classrooms/${encodeURIComponent(code)}/student`, { headers: { authorization: `Bearer ${accessToken}` } })); setError(""); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Could not load classroom"); }
   }, [code, accessToken]);
   useEffect(() => {
@@ -231,22 +234,33 @@ function StudentExperience({ code }: { code: string }) {
       const savedToken = sessionStorage.getItem(`cw-student-token-${code}`);
       const savedAnswer = sessionStorage.getItem(`cw-answer-${code}`);
       if (savedAlias && savedToken) { setAlias(savedAlias); setAccessToken(savedToken); setJoining(false); setAnswer(savedAnswer ?? ""); setSubmitted(Boolean(savedAnswer)); }
-      else api<{ alias: string; accessToken: string }>("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "join", code }) }).then((result) => { setAlias(result.alias); setAccessToken(result.accessToken); sessionStorage.setItem(`cw-alias-${code}`, result.alias); sessionStorage.setItem(`cw-student-token-${code}`, result.accessToken); setJoining(false); }).catch((cause) => { setError(cause instanceof Error ? cause.message : "Could not join"); setJoining(false); });
-      refresh();
+      else setJoining(false);
     }, 0);
     const id = window.setInterval(refresh, 1800); return () => { clearTimeout(start); clearInterval(id); };
   }, [code, refresh]);
 
+  async function joinClassroom() {
+    setJoining(true); setError("");
+    try {
+      const result = await api<{ alias: string; accessToken: string }>(`/api/classrooms/${encodeURIComponent(code)}/join`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nickname, noticeAccepted }) });
+      setAlias(result.alias); setAccessToken(result.accessToken);
+      sessionStorage.setItem(`cw-alias-${code}`, result.alias); sessionStorage.setItem(`cw-student-token-${code}`, result.accessToken);
+      setState(await api<ClassroomState>(`/api/classrooms/${encodeURIComponent(code)}/student`, { headers: { authorization: `Bearer ${result.accessToken}` } }));
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not join"); }
+    finally { setJoining(false); }
+  }
+
   async function submitBelief() {
-    try { await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "respond", code, accessToken, answer }) }); sessionStorage.setItem(`cw-answer-${code}`, answer); setSubmitted(true); refresh(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not submit belief"); }
+    try { await api(`/api/classrooms/${encodeURIComponent(code)}/student`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ action: "respond", answer }) }); sessionStorage.setItem(`cw-answer-${code}`, answer); setSubmitted(true); refresh(); } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not submit belief"); }
   }
   async function submitPrediction(world: "A" | "B", evidence: string) {
-    await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "predict", code, accessToken, selectedWorld: world, evidence }) }); setPredicted(world); refresh();
+    await api(`/api/classrooms/${encodeURIComponent(code)}/student`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ action: "predict", selectedWorld: world, evidence }) }); setPredicted(world); refresh();
   }
   async function submitRevision() {
-    await api("/api/classroom", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "revise", code, accessToken, beforeBelief: answer, afterBelief: revision }) }); refresh();
+    await api(`/api/classrooms/${encodeURIComponent(code)}/student`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ action: "revise", beforeBelief: answer, afterBelief: revision }) }); refresh();
   }
   const alreadyRevised = state?.revisions.some((item) => item.alias === alias);
+  if (!accessToken && !joining) return <Shell minimal><AppHeader code={code} role="Student" /><section className="belief-entry student-join-card"><span className="eyebrow"><LockKeyhole size={13}/> ANONYMOUS CLASSROOM ENTRY</span><span className="question-number">CLASSROOM {code}</span><h1>Choose how your teacher<br/>will know your ideas.</h1><p>Use a nickname—not your real name, email, phone number, or social handle.</p><label>Classroom nickname<input className="portal-input" autoFocus maxLength={24} value={nickname} onChange={(event)=>setNickname(event.target.value)} placeholder="e.g. Curious Comet" /></label><label className="check-row" style={{marginTop:18}}><input type="checkbox" checked={noticeAccepted} onChange={(event)=>setNoticeAccepted(event.target.checked)}/><span>I am 13 or older. I understand that my nickname and learning responses are visible to my teacher and may be processed by the selected AI model. <Link href="/student-privacy">Read the student notice.</Link></span></label>{error&&<div className="inline-error">{error}</div>}<button className="primary-button" style={{marginTop:20}} disabled={nickname.trim().length<2||!noticeAccepted} onClick={joinClassroom}>Join anonymously <ArrowRight/></button></section></Shell>;
   if (joining || !state) return <Shell minimal><AppHeader code={code} role="Student" alias={alias || undefined} />{error ? <div className="error-state"><Orbit /><h1>Portal not found</h1><p>{error}</p><Link href="/">Try another code</Link></div> : <LoadingState label="Joining anonymously…" />}</Shell>;
   const status = state.session.status;
 

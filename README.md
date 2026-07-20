@@ -2,131 +2,140 @@
 
 **Turn wrong answers into playable universes.**
 
-CounterWorlds is a live classroom experience for grades 9–12. A teacher collects real student explanations, GPT-5.6 Sol clusters those mental models through the Codex SDK, and the system compiles a class-specific split-screen experiment. Students predict, manipulate both worlds, gather evidence, and revise their own law after the teacher-controlled reveal.
+CounterWorlds is a real-data classroom platform for school-authorized learners aged 13+. Teachers collect short explanations, compile the class’s competing mental models into two neutral interactive worlds, and measure which beliefs change after experimentation.
 
-Live deployment: [counter-worlds-uo4l.vercel.app](https://counter-worlds-uo4l.vercel.app)
+The school-pilot release uses Google-only teacher identity through Better Auth, persistent school workspaces, anonymous classroom-scoped student access, Supabase persistence/private artifact storage, and durable Vercel Workflows. No production route seeds students, fabricates analytics, or substitutes a fallback world after an AI failure.
 
-## Real-data guarantee
+## Pilot experience
 
-CounterWorlds does not ship a seeded classroom, canned student answers, heuristic misconception labels, simulated generation progress, or cached fallback worlds.
-
-- Every classroom is created by a teacher and starts empty.
-- Every response, prediction, and revision comes from an anonymous participant who joined that classroom code.
-- Every misconception cluster and response mapping is produced by GPT-5.6 Sol from that classroom's submitted explanations.
-- Every playable world is generated for that session, validated, uploaded to private Supabase Storage, and then published.
-- If generation fails or the authenticated worker is offline, the UI reports that state. It does not substitute synthetic content.
-
-## Live classroom flow
-
-1. Open the deployment and create a classroom.
-2. Copy the generated six-character code.
-3. Open `/join/CODE` in one or more separate browser contexts.
-4. Submit actual student explanations.
-5. Close submissions and compile the CounterWorld.
-6. Keep the authenticated local Codex worker running while generation completes.
-7. Launch the world, record predictions, reveal the evidence, and collect revisions.
+- Teachers sign in with Google, create a school workspace, complete authority/13+ onboarding, and retain classroom ownership across browsers.
+- Owners/admins copy exact-email invitation links, manage roles, and can transfer classroom ownership without reading student text.
+- Students enter a code, choose a screened Unicode-friendly nickname, accept the privacy notice, then complete Explain → Experiment → Revise without an account.
+- Vertex Gemini 2.5 Flash is the platform-funded default. A teacher or workspace may explicitly select an encrypted OpenAI BYOK credential for GPT‑5.6 Sol.
+- Generation runs as durable, retryable workflow steps. Failure remains visible and never publishes synthetic content.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  T[Teacher console] --> API[Vercel Next.js API]
-  S[Anonymous student] --> API
-  API --> PG[(Supabase Postgres)]
-  API --> J[Real generation queue]
-  J --> W[Authenticated Codex worker]
-  W --> C[Codex SDK\ngpt-5.6-sol]
-  C --> V[Manifest + HTML validation]
-  V --> ST[(Private Supabase Storage)]
-  ST --> I[Sandboxed iframe]
-  PG --> T
-  PG --> S
+  T[Google-authenticated teacher] --> N[Next.js on Vercel]
+  S[Anonymous student token] --> N
+  N --> B[Better Auth in Supabase Postgres]
+  N --> P[Classroom records + audit log]
+  N --> W[Vercel Workflow]
+  W --> G[Vertex Gemini 2.5 Flash]
+  W --> O[OpenAI GPT-5.6 Sol via encrypted BYOK]
+  W --> V[Schema + HTML validation]
+  V --> ST[Private Supabase Storage]
+  ST --> I[Sandboxed CSP iframe]
 ```
 
-The application is React 19 + TypeScript on standard Next.js and deploys to Vercel. Supabase Postgres stores live classroom state. A private Supabase Storage bucket stores only validated generated artifacts. The classroom refresh interval is 1.8 seconds.
+Teacher identity always comes from the Better Auth session. Student writes use random classroom-scoped bearer tokens stored only as SHA-256 hashes. Raw IP addresses are never stored; network rate-limit identifiers use HMAC.
 
-## Supabase setup
+## Main routes
 
-Apply both migrations in order:
+- `/sign-in`, `/onboarding`, `/dashboard`
+- `/settings` and `/settings/workspace`
+- `/admin` with fresh TOTP step-up
+- `/join/[code]` for the anonymous student journey
+- `/privacy`, `/student-privacy`, `/terms`, `/acceptable-use`
 
-1. [`supabase/migrations/20260718170000_counterworlds.sql`](supabase/migrations/20260718170000_counterworlds.sql)
-2. [`supabase/migrations/20260718193000_real_data_only.sql`](supabase/migrations/20260718193000_real_data_only.sql)
+## Database setup
 
-The first creates the tables, indexes, authorization boundaries, and private Storage bucket. The second removes the original seeded development session and disallows fallback generation states.
+Use the Supabase transaction pooler for `DATABASE_URL` and a direct connection for migrations. Back up current rows, then apply migrations in timestamp order:
 
-All tables deny direct `anon` and `authenticated` access. The Next.js API uses the service role on the server and verifies teacher/student bearer tokens before returning scoped data.
+1. `supabase/migrations/20260718170000_counterworlds.sql`
+2. `supabase/migrations/20260718193000_real_data_only.sql`
+3. `supabase/migrations/20260720110000_school_pilot.sql`
 
-Configure `.env.local`:
+The pilot migration creates Better Auth tables in the dedicated `better_auth` schema (Supabase reserves its own `auth` schema); adds profiles, workspace settings, encrypted AI credentials, immutable audits, rate limits, and MFA grants; upgrades classroom ownership/lifecycle data; hashes new membership tokens; and installs atomic database rate limiting.
+
+## Required environment
+
+Copy `.env.example` to `.env.local`:
 
 ```text
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-COUNTERWORLDS_WORKER_TOKEN=a-long-random-secret
-COUNTERWORLDS_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+DATABASE_URL=
+DIRECT_DATABASE_URL=
+
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+GOOGLE_VERTEX_CREDENTIALS=
+GOOGLE_CLOUD_LOCATION=global
+AI_CREDENTIAL_ENCRYPTION_KEY=
+IP_HASH_SECRET=
+CRON_SECRET=
+
+PLATFORM_ADMIN_EMAILS=adarshsingh8a33@gmail.com
+LEGAL_OPERATOR_NAME=Adarsh Singh
+LEGAL_CONTACT_EMAIL=adarshsingh8a33@gmail.com
 ```
 
-Never expose or commit `SUPABASE_SERVICE_ROLE_KEY` or `COUNTERWORLDS_WORKER_TOKEN`.
+`GOOGLE_VERTEX_CREDENTIALS` is Base64 service-account JSON. `AI_CREDENTIAL_ENCRYPTION_KEY` must decode to exactly 32 random bytes. Generate independent high-entropy values for the Better Auth, IP-HMAC, and cron secrets.
+
+Authorize both Google OAuth callbacks:
+
+```text
+http://localhost:3000/api/auth/callback/google
+https://YOUR_PRODUCTION_DOMAIN/api/auth/callback/google
+```
 
 ## Local development
 
-Requirements: Node.js 22.13 or newer, a configured Supabase project, and a Codex/ChatGPT sign-in that can use GPT-5.6 Sol.
+Requires Node.js 22.13+, Supabase/PostgreSQL credentials, Google OAuth, and a Vertex service account.
 
 ```bash
 npm install
 npm run dev
-```
-
-Run checks with:
-
-```bash
 npm run test:unit
-npx tsc --noEmit
 npm run lint
 npm run build
 ```
 
+The Codex SDK worker remains only for explicit local development. Its API is disabled in production unless `ENABLE_LOCAL_CODEX_WORKER=true`; production generation uses Vercel Workflows.
+
+## AI providers
+
+Vertex uses `@google/genai`, Vertex mode, `gemini-2.5-flash`, global location, low-temperature structured output, and separately serialized untrusted student text.
+
+OpenAI BYOK accepts only `gpt-5.6-sol`. Keys are verified and encrypted with AES-256-GCM. APIs return only scope, last four characters, and timestamps; workflow payloads, logs, audits, errors, and client bundles never receive plaintext keys.
+
+## Security and lifecycle
+
+- Google is the only teacher sign-in/recovery method; there are no CounterWorlds passwords.
+- Invitations require Google sign-in with the exact invited address.
+- Students cannot read another student’s explanation, prediction, or revision.
+- Workspace admins receive operational metadata, not student text or student-level mappings.
+- Generated HTML cannot fetch, use storage/cookies, navigate, open popups, evaluate dynamic code, or access the parent.
+- Explicit permanent deletion requires the classroom code and removes database records plus Storage artifacts.
+- Revealed sessions auto-archive after seven inactive days; other abandoned sessions after 30 days; archived sessions purge after 90 days via authenticated cron.
+- Sensitive workspace, credential, lifecycle, support, ownership, ban, and revocation operations are audited.
+
 ## Vercel deployment
 
-Import `AdarshSingh-ASR/CounterWorlds` into Vercel and configure:
+1. Import `AdarshSingh-ASR/CounterWorlds`.
+2. add all required environment variables to Preview and Production.
+3. Apply the reviewed migrations through the direct Supabase connection.
+4. Exercise real Google and Vertex flows in Preview; test OpenAI only with a valid GPT‑5.6 Sol key.
+5. Add the final production Google callback and set `BETTER_AUTH_URL` to the final HTTPS origin.
+6. Promote the verified Preview.
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `COUNTERWORLDS_WORKER_TOKEN`
+Documentation: [Better Auth PostgreSQL](https://better-auth.com/docs/adapters/postgresql), [Better Auth Next.js](https://better-auth.com/docs/integrations/next), [Vercel Workflows](https://vercel.com/docs/workflow), [Vertex AI](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/start/quickstart), [GPT‑5.6 Sol](https://developers.openai.com/api/docs/models/gpt-5.6-sol).
 
-Every push to `main` produces a production deployment.
+## Key implementation files
 
-## Live GPT-5.6 Sol generation
+- `lib/auth.ts` — Better Auth configuration
+- `lib/security.ts` — nickname guard, identifier hashing, AES-GCM
+- `lib/classroom-store.ts` — scoped persistence and lifecycle
+- `workflows/generate-counterworld.ts` — durable provider generation
+- `lib/world-validator.ts` — experiment security boundary
+- `supabase/migrations/20260720110000_school_pilot.sql` — pilot schema
+- `tests/school-pilot.test.ts` — identity/security/provenance invariants
 
-Set `COUNTERWORLDS_BASE_URL` to the local or deployed application and use the same `COUNTERWORLDS_WORKER_TOKEN` configured in Vercel, then run:
-
-```bash
-npm run worker:codex
-```
-
-[`scripts/codex-worker.ts`](scripts/codex-worker.ts) polls real queued jobs and starts a Codex SDK thread with the explicit `gpt-5.6-sol` model. Student text is treated as untrusted data. Codex writes only `manifest.json` and `world.html` in a temporary workspace. The worker verifies that every submitted alias appears in exactly one generated cluster, validates the HTML security contract, and uploads the resulting artifact. A failure remains a visible failure and can be retried.
-
-## Security and privacy
-
-- Students receive generated aliases; no name, email, account, or sensitive educational record is requested.
-- Each membership receives a random bearer token. Writes are resolved from that token rather than a client-supplied alias.
-- Student reads contain only that member's response, prediction, and revision. Aggregate evidence requires the teacher token.
-- The canonical explanation and generated reveal are withheld from student API responses until reveal.
-- Supabase tables and Storage objects reject direct public access.
-- Student prompt injection is delimited as untrusted content in the Codex prompt.
-- Generated HTML cannot use external resources, network calls, navigation, browser storage, parent-window access, or dynamic code evaluation.
-- Validated worlds receive a restrictive content security policy and run inside `sandbox="allow-scripts"`.
-
-## Key files
-
-- [`components/CounterWorldsApp.tsx`](components/CounterWorldsApp.tsx) — teacher, student, and landing flows
-- [`components/WorldLab.tsx`](components/WorldLab.tsx) — generated experiment host, prediction, and reveal UI
-- [`lib/classroom-store.ts`](lib/classroom-store.ts) — Supabase persistence and authorization
-- [`lib/world-validator.ts`](lib/world-validator.ts) — generated-world security boundary
-- [`scripts/codex-worker.ts`](scripts/codex-worker.ts) — Codex SDK generation worker
-- [`tests/counterworlds.test.ts`](tests/counterworlds.test.ts) — schemas, mappings, migration, and sandbox validation
-
-## License
-
-Hackathon prototype. Add the desired license before distributing it beyond the event.
+The included legal pages are practical pilot drafts identifying Adarsh Singh as operator. Obtain qualified legal review before broad school adoption.

@@ -1,0 +1,9 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ShieldCheck } from "lucide-react";
+import { authClient } from "../lib/auth-client";
+import { PortalHeader } from "./PortalHeader";
+
+export function TwoFactorPanel(){const router=useRouter();const [code,setCode]=useState("");const [error,setError]=useState("");const [codes,setCodes]=useState<string[]>([]);async function verify(event:FormEvent){event.preventDefault();setError("");const result=await authClient.twoFactor.verifyTotp({code,trustDevice:false});if(result.error){setError(result.error.message??"That code was not accepted");return;}const saved=sessionStorage.getItem("cw-pending-backup-codes");if(saved){setCodes(JSON.parse(saved));sessionStorage.removeItem("cw-pending-backup-codes");}else router.replace("/settings");}return <main className="portal-page"><PortalHeader/><div className="portal-content" style={{maxWidth:650}}><span className="portal-eyebrow">STEP-UP SECURITY</span><h1 className="portal-title">Verify your<br/>authenticator.</h1>{codes.length?<section className="settings-panel glass-panel"><ShieldCheck/><h2>Save these backup codes now</h2><p>Each code works once. Store them outside CounterWorlds.</p><pre style={{padding:18,background:"#060806",border:"1px solid var(--line)",borderRadius:10,lineHeight:1.8}}>{codes.join("\n")}</pre><button className="portal-button" onClick={()=>router.replace("/settings")}>I saved the codes</button></section>:<form className="portal-form settings-panel glass-panel" onSubmit={verify}><label>Six-digit TOTP code<input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e)=>setCode(e.target.value.replace(/\D/g,""))}/></label>{error&&<p className="form-error">{error}</p>}<button className="portal-button" disabled={code.length!==6}><ShieldCheck/> Verify securely</button></form>}</div></main>}
