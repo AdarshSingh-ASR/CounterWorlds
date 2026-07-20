@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ChevronDown, LockKeyhole, Menu, Play, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, LockKeyhole, Menu, Play } from "lucide-react";
 import { useState } from "react";
 import { ParticleField } from "./ParticleField";
 
@@ -21,7 +21,7 @@ export function LandingPage() {
       <div className="signal-nav-actions"><Link href="/sign-in" className="signal-login">Sign in</Link><Link href="/sign-in" className="signal-nav-cta">Start a pilot <ArrowRight /></Link><button className="signal-menu" aria-label="Open menu"><Menu /></button></div>
     </header>
     <section className="signal-hero" id="product">
-      <div className="signal-pill"><Sparkles /> LIVE CLASSROOM INTELLIGENCE <span>•</span> BUILT FOR PRODUCTIVE STRUGGLE</div>
+      <div className="signal-pill">LIVE CLASSROOM INTELLIGENCE <span>•</span> BUILT FOR PRODUCTIVE STRUGGLE</div>
       <h1>Every Belief.<br /><em>A Testable World.</em></h1>
       <p>CounterWorlds turns the class&apos;s real misconceptions into interactive universes—so students can predict, experiment, and change their own minds.</p>
       <div className="signal-actions"><Link href="/sign-in" className="signal-primary">Start a school pilot <ArrowRight /></Link><a href="#schools" className="signal-secondary"><Play /> See how it works</a></div>
