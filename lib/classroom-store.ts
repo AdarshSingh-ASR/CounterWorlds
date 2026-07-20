@@ -337,7 +337,9 @@ export async function publishGeneration(jobId: string, payload: { manifest: unkn
   const slug = `cw-${jobResult.data.session_id}-${jobId}`.toLowerCase();
   const manifest: WorldManifest = { ...parsed, id: slug, slug, provider: payload.provider, sourceModel: payload.model as WorldManifest["sourceModel"], contractVersion: "cw-world-v2" };
   const artifactKey = `worlds/${slug}.html`;
-  fail((await db.storage.from("counterworlds").upload(artifactKey, payload.html, { contentType: "text/html; charset=utf-8", upsert: true })).error);
+  // Supabase Storage accepts the MIME type here, but rejects parameters such as
+  // `charset=utf-8`. The serving route adds the charset to the response header.
+  fail((await db.storage.from("counterworlds").upload(artifactKey, payload.html, { contentType: "text/html", upsert: true })).error);
   const results = await Promise.all([
     db.from("worlds").upsert({ id: crypto.randomUUID(), slug, session_id: jobResult.data.session_id, manifest, artifact_key: artifactKey, source_model: payload.model, provider: payload.provider, contract_version: "cw-world-v2", validation_status: "verified" }, { onConflict: "slug" }),
     db.from("generation_jobs").update({ status: "ready", stage: "CounterWorld verified", progress: 100, world_slug: slug, completed_at: now(), updated_at: now() }).eq("id", jobId),

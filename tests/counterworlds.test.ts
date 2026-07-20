@@ -51,3 +51,9 @@ test("real-data-only migration removes the seeded classroom and fallback status"
   assert.match(sql, /teacher_token = 'demo-teacher-token'/);
   assert.doesNotMatch(sql.match(/add constraint[\s\S]*$/)?.[0] ?? "", /fallback/);
 });
+
+test("generated HTML uses a Supabase-supported storage MIME type", () => {
+  const store = readFileSync(new URL("../lib/classroom-store.ts", import.meta.url), "utf8");
+  assert.match(store, /upload\(artifactKey, payload\.html, \{ contentType: "text\/html", upsert: true \}\)/);
+  assert.doesNotMatch(store, /contentType: "text\/html; charset=utf-8"/);
+});
