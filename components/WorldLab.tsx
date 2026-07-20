@@ -38,7 +38,7 @@ export function WorldLab({ world, revealed = false, compact = false, onPredictio
       <p className="lab-prompt">{world.predictionPrompt}</p>
       <iframe
         className="generated-world-frame"
-        src={`/api/worlds/${encodeURIComponent(world.slug)}`}
+        src={`/api/worlds/${encodeURIComponent(world.slug)}?format=html-v1`}
         sandbox="allow-scripts"
         referrerPolicy="no-referrer"
         title={`${world.title} generated CounterWorld experiment`}
