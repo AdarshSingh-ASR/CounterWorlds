@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 function Mark(){return <span className="signal-mark" aria-hidden="true"><i/><i/><i/></span>}
 
 export function LegalDocument({kind}:{kind:"privacy"|"terms"|"student"|"acceptable"}){
-  const contact=process.env.LEGAL_CONTACT_EMAIL??"adarshsingh8a33@gmail.com";const operator=process.env.LEGAL_OPERATOR_NAME??"Adarsh Singh";
+  const contact=process.env.LEGAL_CONTACT_EMAIL??"adarshsingh8a33@gmail.com";
+  const operator=process.env.LEGAL_OPERATOR_NAME??"Adarsh Singh";
   const content={
     privacy:{title:"Privacy notice",intro:"How CounterWorlds handles teacher accounts, anonymous classroom participation, and generated learning evidence.",sections:[
       ["Information we collect","Teachers authenticate through Google. We store the resulting account identifier, email, display name, school workspace, settings, classroom content, and security audit events. Students do not create accounts; we store a chosen nickname, classroom explanation, prediction, and revision."],
@@ -29,12 +31,12 @@ export function LegalDocument({kind}:{kind:"privacy"|"terms"|"student"|"acceptab
       ["Need help?",`Ask your teacher first. Privacy questions can also be sent to ${contact}. CounterWorlds is for learners aged 13 or older.`],
     ]},
     acceptable:{title:"Acceptable use",intro:"Safety boundaries for teachers, workspace administrators, and students.",sections:[
-      ["Use CounterWorlds for learning","Use the service to explore legitimate grade 9–12 scientific and mathematical mental models. Do not use it for grading, discipline, admissions, surveillance, profiling, or decisions about a learner."],
+      ["Use CounterWorlds for learning","Use the service to explore legitimate grade 9-12 scientific and mathematical mental models. Do not use it for grading, discipline, admissions, surveillance, profiling, or decisions about a learner."],
       ["Protect students","Do not request or submit real names, contact details, health information, precise locations, credentials, or other sensitive information. Do not attempt to re-identify anonymous learners."],
       ["Do not attack the service","Do not probe other classrooms, evade rate limits, upload malicious prompts, extract secrets, interfere with generated-world isolation, or access accounts without authorization."],
       ["Review generated content","Teachers must check every generated world before launch. Report unsafe, inaccurate, discriminatory, or inappropriate content and do not expose it to students."],
       ["Enforcement",`CounterWorlds may suspend accounts or workspaces that create safety or security risk. Report concerns to ${contact}.`],
     ]},
   }[kind];
-  return <main className="portal-page"><header className="portal-header"><Link href="/" className="signal-logo"><Mark/><span>COUNTERWORLDS</span></Link><nav><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav></header><article className="portal-content legal-page"><span className="portal-eyebrow">SCHOOL PILOT · VERSION 2026-07-20</span><h1>{content.title}</h1><p>{content.intro}</p>{content.sections.map(([title,text])=><section key={title}><h2>{title}</h2><p>{text}</p></section>)}<p style={{marginTop:50}}>These pilot documents are practical product notices and should be reviewed by qualified counsel before broad institutional adoption.</p></article></main>;
+  return <main className="portal-page"><header className="portal-header"><Link href="/" className="signal-logo"><Mark/><span>COUNTERWORLDS</span></Link><nav><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/dashboard" className="legal-back"><ArrowLeft size={14}/> Dashboard</Link></nav></header><article className="portal-content legal-page"><span className="portal-eyebrow">SCHOOL PILOT · VERSION 2026-07-20</span><h1>{content.title}</h1><p>{content.intro}</p>{content.sections.map(([title,text])=><section key={title}><h2>{title}</h2><p>{text}</p></section>)}<p style={{marginTop:50}}>These pilot documents are practical product notices and should be reviewed by qualified counsel before broad institutional adoption.</p></article></main>;
 }
