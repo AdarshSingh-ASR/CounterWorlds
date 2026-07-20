@@ -2,6 +2,14 @@
 
 > **Turn wrong answers into playable universes.**
 
+[![Live demo](https://img.shields.io/badge/live_demo-counter--worlds.vercel.app-1a7f37?style=flat-square)](https://counter-worlds.vercel.app)
+[![Track](https://img.shields.io/badge/OpenAI_Build_Week-Education_track-6f42c1?style=flat-square)](https://openai.devpost.com/)
+[![Built with](https://img.shields.io/badge/built_with-Codex_%2B_GPT--5.6_Sol-000000?style=flat-square)](#gpt-56-sol-and-codex)
+[![Stack](https://img.shields.io/badge/stack-Next.js_%7C_Supabase_%7C_Vercel-black?style=flat-square)](#architecture)
+
+**Live app:** [counter-worlds.vercel.app](https://counter-worlds.vercel.app)<br>
+The final narrated demo video and primary Codex `/feedback` session are linked from the Devpost submission.
+
 CounterWorlds is a live classroom platform for grades 9–12. Instead of immediately correcting a misconception, it turns the class’s competing mental models into a neutral split-screen experiment:
 
 - **World A** obeys the dominant misconception.
@@ -17,6 +25,29 @@ Built for the [OpenAI Codex Hackathon](https://openai.devpost.com/).
 Students often hold coherent but incorrect models: “heavier objects accelerate faster,” “adding (h) shifts a graph right,” or “a catalyst changes equilibrium yield.” Those are useful starting points for inquiry, not just wrong answers to mark.
 
 CounterWorlds preserves productive struggle. A teacher sees which models changed after evidence, while students stay anonymous and own their revision process.
+
+## The spark: curiosity before certainty
+
+I wanted to build something for the Education track that felt genuinely different—not another tutor that explains the answer or another dashboard that labels students as wrong. I had the ambition before I had the mechanism: I knew the experience should be revolutionary and out of the box, but I could not yet see what it was.
+
+So I tested GPT-5.6 Sol as a thinking partner. I was impressed by how well it could turn a vague product goal into a coherent plan, and that conversation produced the core idea: instead of correcting a misconception immediately, make the misconception a playable universe that students can test against the accepted model. From there, Codex helped carry roughly 80% of the first implementation pass in one focused build session—routes, contracts, UI states, persistence, validation, and tests—while I owned the educational thesis, the school-pilot constraints, the safety boundaries, the design direction, and the final review.
+
+The result is not “AI made an app.” It is a deliberate collaboration: GPT-5.6 Sol helped reason about the learning contract and generate worlds; Codex accelerated the engineering loop; and I made the product decisions, checked the implementation against real classroom behavior, debugged deployment, and kept the experience grounded in real data rather than mock success states.
+
+## Try it yourself (judge walkthrough)
+
+CounterWorlds intentionally ships without fake classrooms or sample students. The fastest real-data path is:
+
+1. Open [the live app](https://counter-worlds.vercel.app) and sign in with Google as the teacher.
+2. Create a classroom with this ready-to-paste physics prompt:
+   - **Question:** “Two carts are pushed with the same net force. Cart A has a mass of 2 kg and Cart B has a mass of 4 kg. Which cart accelerates more, and why?”
+   - **Learning objective:** “Use Newton’s second law to compare how mass affects acceleration under the same net force, then revise an initial explanation using evidence.”
+   - **Canonical model:** “Newton’s second law is `a = F/m`. With the same net force, acceleration is inversely proportional to mass, so the 2 kg cart accelerates twice as much as the 4 kg cart.”
+3. Open the classroom join link in a second browser profile or incognito window. Students join with the code, choose a nickname, and never need a Google account or personal information.
+4. Submit an initial misconception such as: “The heavier cart accelerates more because the same push has more mass behind it.” Confirm it appears in the teacher console.
+5. Compile the CounterWorld, enter the experiment, manipulate the same control in both panels, select the world that matches the evidence, and submit a revised explanation.
+
+This path exercises the actual teacher, anonymous-student, realtime, generation, prediction, reveal, and revision records. If no provider is configured, the app reports a visible generation failure; it does not insert a canned world.
 
 ## Product flow
 
