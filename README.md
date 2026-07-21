@@ -3,14 +3,15 @@
 > **Turn wrong answers into playable universes.**
 
 [![Live demo](https://img.shields.io/badge/live_demo-counter--worlds.vercel.app-1a7f37?style=flat-square)](https://counter-worlds.vercel.app)
+[![Demo video](https://img.shields.io/badge/demo_video-watch_on_YouTube-ff0033?style=flat-square&logo=youtube&logoColor=white)](https://youtu.be/lAG_dHFolyo)
 [![Track](https://img.shields.io/badge/OpenAI_Build_Week-Education_track-6f42c1?style=flat-square)](https://openai.devpost.com/)
 [![Built with](https://img.shields.io/badge/built_with-Codex_%2B_GPT--5.6_Sol-000000?style=flat-square)](#gpt-56-sol-and-codex)
 [![Stack](https://img.shields.io/badge/stack-Next.js_%7C_Supabase_%7C_Vercel-black?style=flat-square)](#architecture)
 
 ![CounterWorlds: Turn wrong answers into playable universes](./public/og.png)
 
-**Live app:** [counter-worlds.vercel.app](https://counter-worlds.vercel.app)<br>
-The final narrated demo video and primary Codex `/feedback` session are linked from the Devpost submission.
+**Live app:** [counter-worlds.vercel.app](https://counter-worlds.vercel.app) · **Demo:** [watch the narrated 2:27 walkthrough](https://youtu.be/lAG_dHFolyo)<br>
+The primary Codex `/feedback` session is linked from the Devpost submission.
 
 CounterWorlds is a live classroom platform for grades 9–12. Instead of immediately correcting a misconception, it turns the class’s competing mental models into a neutral split-screen experiment:
 
@@ -64,6 +65,30 @@ CounterWorlds intentionally ships without fake classrooms or sample students. Al
 5. Compile the CounterWorld, enter the experiment, manipulate the same control in both panels, select the world that matches the evidence, and submit a revised explanation.
 
 This path exercises the actual teacher, anonymous-student, realtime, generation, prediction, reveal, and revision records. If no provider is configured, the app reports a visible generation failure; it does not insert a canned world.
+
+## Product in action
+
+These are real screens from the live teacher and anonymous-student journey—no fabricated classroom UI or sample-data mockups.
+
+<table>
+  <tr>
+    <td width="50%"><strong>Persistent teacher workspace</strong><br><img src="./images/teacher%20onboard.png" alt="CounterWorlds teacher workspace onboarding"></td>
+    <td width="50%"><strong>Landing and anonymous classroom entry</strong><br><img src="./images/dashboard%20hero.png" alt="CounterWorlds landing page and anonymous join-code entry"></td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Create a live classroom</strong><br><img src="./images/live%20classroom%20creation.png" alt="Teacher form for creating a live CounterWorlds classroom"></td>
+    <td width="50%"><strong>Explain before the reveal</strong><br><img src="./images/student%20answers.png" alt="Anonymous student prediction and evidence response"></td>
+  </tr>
+  <tr>
+    <td width="50%"><strong>Validated generated world</strong><br><img src="./images/experiment%20generated.png" alt="Teacher view of a validated generated CounterWorld"></td>
+    <td width="50%"><strong>Neutral split-world experiment</strong><br><img src="./images/student%20experiments.png" alt="Student experiment comparing World A and World B"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Evidence of conceptual change</strong><br><img src="./images/teacher%20learning.png" alt="Teacher evidence dashboard showing belief revision"></td>
+  </tr>
+</table>
+
+▶ [Watch the complete narrated demo on YouTube](https://youtu.be/lAG_dHFolyo)
 
 ## Product flow
 
