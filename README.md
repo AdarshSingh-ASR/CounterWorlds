@@ -7,6 +7,8 @@
 [![Built with](https://img.shields.io/badge/built_with-Codex_%2B_GPT--5.6_Sol-000000?style=flat-square)](#gpt-56-sol-and-codex)
 [![Stack](https://img.shields.io/badge/stack-Next.js_%7C_Supabase_%7C_Vercel-black?style=flat-square)](#architecture)
 
+![CounterWorlds: Turn wrong answers into playable universes](./public/og.png)
+
 **Live app:** [counter-worlds.vercel.app](https://counter-worlds.vercel.app)<br>
 The final narrated demo video and primary Codex `/feedback` session are linked from the Devpost submission.
 
@@ -20,6 +22,18 @@ The result is not a conventional answer bot or misconception dashboard. It makes
 
 Built for the [OpenAI Codex Hackathon](https://openai.devpost.com/).
 
+## Why CounterWorlds is different
+
+| Conventional AI tutor | CounterWorlds |
+| --- | --- |
+| Explains the accepted answer | Makes both mental models executable |
+| Corrects the learner immediately | Preserves prediction before reveal |
+| Delivers one generated explanation | Generates a class-specific, controlled experiment |
+| Measures answer correctness | Records explanation → prediction → evidence → revision |
+| Treats wrong answers as errors | Treats them as hypotheses worth testing |
+
+The signature mechanism is **model-to-world compilation**: a misconception is not summarized in a dashboard or answered in chat. It becomes World A, running beside the canonical World B under identical controls, so evidence can arbitrate between them.
+
 ## Why it matters
 
 Students often hold coherent but incorrect models: “heavier objects accelerate faster,” “adding (h) shifts a graph right,” or “a catalyst changes equilibrium yield.” Those are useful starting points for inquiry, not just wrong answers to mark.
@@ -28,15 +42,17 @@ CounterWorlds preserves productive struggle. A teacher sees which models changed
 
 ## The spark: curiosity before certainty
 
-I wanted to build something for the Education track that felt genuinely different—not another tutor that explains the answer or another dashboard that labels students as wrong. I had the ambition before I had the mechanism: I knew the experience should be revolutionary and out of the box, but I could not yet see what it was.
+I entered the Education track wanting to build something genuinely different: not another tutor that explains the answer, and not another dashboard that labels a student as wrong. I had the ambition before I had the mechanism. I wanted an experience that felt out of the box, but no idea I had could yet justify that claim.
 
-So I tested GPT-5.6 Sol as a thinking partner. I was impressed by how well it could turn a vague product goal into a coherent plan, and that conversation produced the core idea: instead of correcting a misconception immediately, make the misconception a playable universe that students can test against the accepted model. From there, Codex helped carry roughly 80% of the first implementation pass in one focused build session—routes, contracts, UI states, persistence, validation, and tests—while I owned the educational thesis, the school-pilot constraints, the safety boundaries, the design direction, and the final review.
+So I tested GPT-5.6 Sol as a thinking partner. What impressed me was not a flashy answer, but the quality of its planning. It turned a vague ambition into a coherent product thesis: **what if a student's misconception became a playable universe, and evidence, not authority, decided which world held up?**
 
-The result is not “AI made an app.” It is a deliberate collaboration: GPT-5.6 Sol helped reason about the learning contract and generate worlds; Codex accelerated the engineering loop; and I made the product decisions, checked the implementation against real classroom behavior, debugged deployment, and kept the experience grounded in real data rather than mock success states.
+That conversation unlocked CounterWorlds. In one focused build session, Codex then helped produce roughly 80% of the initial implementation pass: routes, contracts, UI states, persistence, validation, and tests. I treated that output as a first draft, not a finished product. I owned the educational premise, school-pilot constraints, safety boundaries, visual direction, manual review, deployment debugging, and the decision to use real classroom data rather than fake success states.
+
+That division of work became part of the project itself: GPT-5.6 Sol helped reason about the learning contract and can generate constrained worlds; Codex accelerated the engineering loop; human judgment decided what belonged in a classroom and what was safe enough to ship.
 
 ## Try it yourself (judge walkthrough)
 
-CounterWorlds intentionally ships without fake classrooms or sample students. The fastest real-data path is:
+CounterWorlds intentionally ships without fake classrooms or sample students. Allow about **five minutes**, plus generation time. The fastest real-data path is:
 
 1. Open [the live app](https://counter-worlds.vercel.app) and sign in with Google as the teacher.
 2. Create a classroom with this ready-to-paste physics prompt:
@@ -144,6 +160,17 @@ Codex was a hands-on development collaborator throughout this build—not a post
 | Visual system | Recreated the black, warm-white, lime/emerald observatory interface, particle landscape, custom themed selectors, and accessible states. | The experiment remains visually neutral before reveal. |
 | Deployment debugging | Diagnosed the Vercel/Supabase pooler TLS issue and the Better Auth cookie-prefix redirect loop from runtime evidence. | Google sign-in now reaches onboarding for first-time teachers and the dashboard for returning teachers. |
 | Verification | Ran lint/build/test loops, inspected generated-world safety boundaries, and kept secret values out of committed files and documentation. | The shipped path is based on real persistence and real provider behavior, not mock data. |
+
+### Concrete AI-assisted implementation
+
+| Evidence in the repository | What it demonstrates |
+| --- | --- |
+| [`workflows/generate-counterworld.ts`](./workflows/generate-counterworld.ts) | Durable generation stages, provider routing, and publication flow. |
+| [`scripts/codex-worker.ts`](./scripts/codex-worker.ts) | A real Codex SDK path pinned to `gpt-5.6-sol`, with temporary-workspace isolation and validation. |
+| [`lib/counterworlds.ts`](./lib/counterworlds.ts) | The Zod-constrained `WorldManifest` and generation request contracts. |
+| [`lib/world-validator.ts`](./lib/world-validator.ts) | Generated HTML validation, CSP injection, and presentation sanitization. |
+| [`tests/counterworlds.test.ts`](./tests/counterworlds.test.ts) | Contract, mapping, sandbox, and content-safety tests. |
+| [`tests/school-pilot.test.ts`](./tests/school-pilot.test.ts) | Identity, lifecycle, encryption, and school-pilot boundary tests. |
 
 The repository retains the development-only `@openai/codex-sdk` worker in `scripts/codex-worker.ts`. It starts a Codex thread with `gpt-5.6-sol`, writes only a manifest and self-contained world to a temporary workspace, then validates both before publishing. It is disabled in production unless `ENABLE_LOCAL_CODEX_WORKER=true`; deployed generation uses Vercel Workflows instead.
 
