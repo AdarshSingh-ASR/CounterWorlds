@@ -335,4 +335,3 @@ npm run build
 - [Vercel Workflows](https://vercel.com/docs/workflow)
 - [Vertex AI quickstart](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/start/quickstart)
 
-The legal pages are practical pilot drafts identifying Adarsh Singh as operator. Obtain qualified legal review before broad school deployment.
