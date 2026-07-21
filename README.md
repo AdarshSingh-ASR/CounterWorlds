@@ -335,3 +335,8 @@ npm run build
 - [Vercel Workflows](https://vercel.com/docs/workflow)
 - [Vertex AI quickstart](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/start/quickstart)
 
+## License
+
+Copyright © 2026 Adarsh Singh. All rights reserved.
+
+This project is proprietary. The source code is publicly available for viewing and hackathon evaluation only. No permission is granted to copy, modify, distribute, sublicense, or use it commercially without prior written permission from the author.
